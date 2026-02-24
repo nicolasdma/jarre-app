@@ -7,17 +7,6 @@ import type { Language } from '@/lib/translations';
 import { DashboardContent } from './dashboard-content';
 import type { PipelineCourseData } from './pipeline-course-card';
 
-export interface CurriculumSummary {
-  id: string;
-  title: string;
-  topic: string;
-  status: string;
-  createdAt: string;
-  phaseCount: number;
-  resourceCount: number;
-  materializedCount: number;
-}
-
 export const metadata: Metadata = {
   title: 'Dashboard — Jarre',
   description: 'Your learning dashboard',
@@ -101,6 +90,22 @@ export default async function DashboardPage() {
     }
   }
 
+  // Fetch user_resources to determine ownership
+  const ownedResourceIds = new Set<string>();
+  if (user && resourceIds.length > 0) {
+    const { data: userResources } = await supabase
+      .from(TABLES.userResources)
+      .select('resource_id')
+      .eq('user_id', user.id)
+      .in('resource_id', resourceIds);
+
+    if (userResources) {
+      for (const ur of userResources) {
+        ownedResourceIds.add(ur.resource_id);
+      }
+    }
+  }
+
   // Build course data
   const courses: PipelineCourseData[] = pipelineResources.map((r) => ({
     id: r.id,
@@ -111,6 +116,7 @@ export default async function DashboardPage() {
     sectionCount: sectionCounts[r.id] || 0,
     createdAt: r.created_at,
     evalStats: evalStats[r.id] || null,
+    isOwner: ownedResourceIds.has(r.id),
   }));
 
   // Compute compact stats

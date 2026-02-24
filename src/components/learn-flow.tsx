@@ -11,7 +11,6 @@ import { SectionLabel } from '@/components/ui/section-label';
 import { ScrollProgress } from './scroll-progress';
 import { LearnTOC } from './learn-toc';
 import { t, type Language } from '@/lib/translations';
-import type { ReadingQuestion } from '@/app/learn/[resourceId]/reading-questions';
 import { PracticeEvalStep } from './practice-eval-step';
 import { saveLearnProgress, type LearnProgress, type SectionState, type PracticeEvalState } from '@/lib/learn-progress';
 import { WhisperProvider } from '@/lib/whisper/whisper-context';
@@ -23,7 +22,6 @@ import { WhisperToggle } from './whisper-toggle';
 const log = createLogger('LearnFlow');
 import type { FigureRegistry } from '@/lib/figure-registry';
 import type { InlineQuiz, VideoSegment, Exercise } from '@/types';
-import { getExercisesForConcept } from '@/lib/exercises/registry';
 import { StickyVideoPlayer } from './sticky-video-player';
 import { VideoSeekProvider } from '@/lib/video-seek-context';
 
@@ -63,11 +61,8 @@ interface LearnFlowProps {
   resourceType: string;
   sections: Section[];
   activateComponent: React.ReactNode;
-  playgroundHref?: string;
-  playgroundLabel?: string;
   concepts: EvalConcept[];
   userId: string;
-  guidedQuestions?: ReadingQuestion[];
   initialProgress?: LearnProgress;
   figureRegistry?: FigureRegistry;
   quizzesBySectionId?: Record<string, InlineQuiz[]>;
@@ -86,23 +81,6 @@ const STEP_LABELS: Record<Step, { key: Parameters<typeof t>[0] }> = {
   'practice-eval': { key: 'learn.step.practiceEval' },
   apply: { key: 'learn.step.apply' },
   evaluate: { key: 'learn.step.evaluate' },
-};
-
-// Question type labels/colors (duplicated from reading-questions to avoid circular dependency)
-const Q_TYPE_LABELS: Record<string, string> = {
-  tradeoff: 'Trade-off',
-  why: 'Por qué',
-  connection: 'Conexión',
-  error_detection: 'Detección de Error',
-  design_decision: 'Decisión de Diseño',
-};
-
-const Q_TYPE_COLORS: Record<string, string> = {
-  tradeoff: 'bg-amber-50 text-amber-700',
-  why: 'bg-blue-50 text-blue-700',
-  connection: 'bg-purple-50 text-purple-700',
-  error_detection: 'bg-red-50 text-red-700',
-  design_decision: 'bg-green-50 text-green-700',
 };
 
 // ============================================================================
@@ -291,11 +269,8 @@ export function LearnFlow({
   resourceType,
   sections,
   activateComponent,
-  playgroundHref,
-  playgroundLabel,
   concepts,
   userId,
-  guidedQuestions,
   initialProgress,
   figureRegistry,
   quizzesBySectionId,
@@ -498,30 +473,19 @@ export function LearnFlow({
           onMobileOpenChange={setTocOpen}
         />
 
-      {/* STEP 3: PLAYGROUND — Full-width, no padding */}
+      {/* STEP 3: APPLY — Placeholder for future apply step */}
       {currentStep === 'apply' && (
-        <div className="lg:ml-[220px]">
-          {playgroundHref ? (
-            <iframe
-              src={`${playgroundHref}?embed=1`}
-              className="w-full border-0"
-              style={{ height: 'calc(100vh - 57px)' }}
-              title={playgroundLabel || 'Playground'}
-            />
-          ) : (
-            <div className="flex items-center justify-center" style={{ height: 'calc(100vh - 57px)' }}>
-              <div className="text-center">
-                <p className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mb-2">
-                  Playground
-                </p>
-                <p className="text-sm text-j-text-secondary">
-                  {language === 'es'
-                    ? 'No hay playground disponible para este recurso.'
-                    : 'No playground available for this resource.'}
-                </p>
-              </div>
-            </div>
-          )}
+        <div className="lg:ml-[220px] flex items-center justify-center" style={{ height: 'calc(100vh - 57px)' }}>
+          <div className="text-center">
+            <p className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mb-2">
+              {language === 'es' ? 'Aplicar' : 'Apply'}
+            </p>
+            <p className="text-sm text-j-text-secondary">
+              {language === 'es'
+                ? 'Paso de aplicación en desarrollo.'
+                : 'Apply step coming soon.'}
+            </p>
+          </div>
         </div>
       )}
 
@@ -625,7 +589,7 @@ export function LearnFlow({
                   figureRegistry={figureRegistry}
                   quizzesBySectionId={quizzesBySectionId}
                   videoSegmentsBySectionId={videoSegmentsBySectionId}
-                  exercises={getExercisesForConcept(section.conceptId)}
+                  exercises={[]}
                 />
               ))}
             </div>

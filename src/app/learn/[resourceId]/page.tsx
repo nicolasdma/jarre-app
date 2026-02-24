@@ -3,33 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { GenericActivate } from '@/components/generic-activate';
-import { DDIAChapter1 } from './ddia-ch1';
-
-export async function generateMetadata({ params }: { params: Promise<{ resourceId: string }> }): Promise<Metadata> {
-  const { resourceId } = await params;
-  return {
-    title: `Learn ${resourceId} — Jarre`,
-    description: 'Interactive learning content with sections and exercises',
-  };
-}
-import { DDIAChapter2 } from './ddia-ch2';
-import { DDIAChapter3 } from './ddia-ch3';
-import { DDIAChapter5 } from './ddia-ch5';
-import { DDIAChapter6 } from './ddia-ch6';
-import { DDIAChapter4 } from './ddia-ch4';
-import { DDIAChapter7 } from './ddia-ch7';
-import { DDIAChapter8 } from './ddia-ch8';
-import { DDIAChapter9 } from './ddia-ch9';
-import { TailAtScale } from './tail-scale';
-import { AttentionPaper } from './attention-paper';
-import { ScalingLawsPaper } from './scaling-laws';
-import { AgentSandboxPatterns } from './agent-sandbox-patterns';
-import { ClawvaultAgentMemory } from './clawvault-agent-memory';
-import { OpenClawCaseStudy } from './openclaw-casestudy';
-import { Kz2hMicrograd } from './kz2h-micrograd';
-import { LilianWengDistributed } from './lilian-weng-distributed';
-import { HoraceHeGpu } from './horace-he-gpu';
-import { READING_QUESTIONS } from './reading-questions';
 import { LearnFlow } from '@/components/learn-flow';
 import { FIGURE_REGISTRY } from '@/lib/figure-registry';
 import {
@@ -42,53 +15,17 @@ import type { Language } from '@/lib/translations';
 import type { LearnProgress } from '@/lib/learn-progress';
 import type { InlineQuiz, VideoSegment } from '@/types';
 
+export async function generateMetadata({ params }: { params: Promise<{ resourceId: string }> }): Promise<Metadata> {
+  const { resourceId } = await params;
+  return {
+    title: `Learn ${resourceId} — Jarre`,
+    description: 'Interactive learning content with sections and exercises',
+  };
+}
+
 interface PageProps {
   params: Promise<{ resourceId: string }>;
 }
-
-/** Where does the "practical" step go for each resource */
-const PRACTICAL_ROUTES: Record<string, { label: string; href: string }> = {
-  'ddia-ch1': { label: 'Playground', href: '/playground/latency-simulator' },
-  'ddia-ch2': { label: 'Evaluar', href: '/learn/ddia-ch2' },
-  'ddia-ch3': { label: 'Playground', href: '/playground/storage-engine' },
-  'ddia-ch4': { label: 'Playground', href: '/playground/encoding' },
-  'ddia-ch5': { label: 'Playground', href: '/playground/replication-lab' },
-  'ddia-ch6': { label: 'Playground', href: '/playground/partitioning' },
-  'ddia-ch7': { label: 'Playground', href: '/playground/transactions' },
-  'ddia-ch8': { label: 'Playground', href: '/playground/consensus' },
-  'ddia-ch9': { label: 'Playground', href: '/playground/consensus' },
-  'tail-at-scale-paper': { label: 'Playground', href: '/playground/tail-latency' },
-  'attention-paper': { label: 'Playground', href: '/playground/attention' },
-  'scaling-laws-paper': { label: 'Playground', href: '/playground/scaling-laws' },
-  'agent-sandbox-patterns': { label: 'Playground', href: '/playground/agent-sandbox' },
-  'clawvault-agent-memory': { label: 'Playground', href: '/playground/clawvault-memory' },
-  'openclaw-casestudy': { label: 'Playground', href: '/playground/openclaw-architecture' },
-  'kz2h-micrograd': { label: 'Playground', href: '/playground/micrograd' },
-  'p2-lilian-weng-distributed': { label: 'Playground', href: '/playground/distributed-training' },
-  'p2-horace-he-gpu': { label: 'Playground', href: '/playground/gpu-performance' },
-};
-
-/** Resources with advance organizer components (Step 1: ACTIVATE) */
-const EXPLANATION_COMPONENTS: Record<string, () => React.JSX.Element> = {
-  'ddia-ch1': () => <DDIAChapter1 />,
-  'ddia-ch2': () => <DDIAChapter2 />,
-  'ddia-ch3': () => <DDIAChapter3 />,
-  'ddia-ch4': () => <DDIAChapter4 />,
-  'ddia-ch5': () => <DDIAChapter5 />,
-  'ddia-ch6': () => <DDIAChapter6 />,
-  'ddia-ch7': () => <DDIAChapter7 />,
-  'ddia-ch8': () => <DDIAChapter8 />,
-  'ddia-ch9': () => <DDIAChapter9 />,
-  'tail-at-scale-paper': () => <TailAtScale />,
-  'attention-paper': () => <AttentionPaper />,
-  'scaling-laws-paper': () => <ScalingLawsPaper />,
-  'agent-sandbox-patterns': () => <AgentSandboxPatterns />,
-  'clawvault-agent-memory': () => <ClawvaultAgentMemory />,
-  'openclaw-casestudy': () => <OpenClawCaseStudy />,
-  'kz2h-micrograd': () => <Kz2hMicrograd />,
-  'p2-lilian-weng-distributed': () => <LilianWengDistributed />,
-  'p2-horace-he-gpu': () => <HoraceHeGpu />,
-};
 
 export default async function LearnPage({ params }: PageProps) {
   const { resourceId } = await params;
@@ -154,11 +91,6 @@ export default async function LearnPage({ params }: PageProps) {
     );
   }
 
-  const renderContent = EXPLANATION_COMPONENTS[resourceId];
-  const practical = PRACTICAL_ROUTES[resourceId];
-  const guidedQuestions = READING_QUESTIONS[resourceId];
-
-  // NEW FLOW: If resource has sections in DB, use the ACTIVATE → LEARN → APPLY → EVALUATE sequence
   if (sections.length > 0) {
     const resourceLang = (resource.language as string) || language;
     const needsTranslation = resourceLang !== language;
@@ -266,12 +198,9 @@ export default async function LearnPage({ params }: PageProps) {
         resourceTitle={resource.title}
         resourceType={resource.type}
         sections={flowSections}
-        activateComponent={renderContent?.() ?? (translatedActivateData ? <GenericActivate data={translatedActivateData.data} title={resource.title} pendingTranslation={translatedActivateData.pendingTranslation} /> : undefined)}
-        playgroundHref={practical?.href}
-        playgroundLabel={practical?.label}
+        activateComponent={translatedActivateData ? <GenericActivate data={translatedActivateData.data} title={resource.title} pendingTranslation={translatedActivateData.pendingTranslation} /> : undefined}
         concepts={conceptsTaught}
         userId={user.id}
-        guidedQuestions={guidedQuestions}
         initialProgress={initialProgress}
         figureRegistry={FIGURE_REGISTRY}
         quizzesBySectionId={quizzesBySectionId}
@@ -280,101 +209,13 @@ export default async function LearnPage({ params }: PageProps) {
     );
   }
 
-  // If no sections and no explanation component, show message
-  if (!renderContent) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-j-bg p-8">
-        <p className="mb-4 text-j-text-secondary">Contenido no disponible aún para este recurso.</p>
-        <Link href="/dashboard" className="text-j-accent hover:underline">
-          ← Volver a la biblioteca
-        </Link>
-      </div>
-    );
-  }
-
-  // FALLBACK: Original flow for resources with explanation component but no sections
-  const hasQuestions = !!guidedQuestions;
-
+  // No sections in DB — resource not yet processed
   return (
-    <div className="min-h-screen bg-j-bg">
-      {/* Sticky header with step navigation */}
-      <div className="sticky top-0 z-50 border-b border-j-border bg-j-bg/90 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 sm:px-8 py-4">
-          <Link
-            href="/dashboard"
-            className="text-sm text-j-text-tertiary hover:text-j-text transition-colors"
-          >
-            ← Biblioteca
-          </Link>
-
-          {/* Step indicators */}
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-[10px] tracking-[0.15em] text-j-text uppercase font-medium">
-              Resumen
-            </span>
-            {hasQuestions && (
-              <>
-                <span className="text-j-border-dot">·</span>
-                <Link
-                  href={`/learn/${resourceId}/questions`}
-                  className="font-mono text-[10px] tracking-[0.15em] text-j-text-tertiary uppercase hover:text-j-text transition-colors"
-                >
-                  Preguntas
-                </Link>
-              </>
-            )}
-            {practical && (
-              <>
-                <span className="text-j-border-dot">·</span>
-                <Link
-                  href={practical.href}
-                  className="font-mono text-[10px] tracking-[0.15em] text-j-text-tertiary uppercase hover:text-j-text transition-colors"
-                >
-                  {practical.label}
-                </Link>
-              </>
-            )}
-          </div>
-
-          {hasQuestions ? (
-            <Link
-              href={`/learn/${resourceId}/questions`}
-              className="font-mono text-[10px] tracking-[0.15em] bg-j-accent text-j-text-on-accent px-3 py-1.5 uppercase hover:bg-j-accent-hover transition-colors"
-            >
-              Preguntas →
-            </Link>
-          ) : practical ? (
-            <Link
-              href={practical.href}
-              className="font-mono text-[10px] tracking-[0.15em] bg-j-accent text-j-text-on-accent px-3 py-1.5 uppercase hover:bg-j-accent-hover transition-colors"
-            >
-              {practical.label} →
-            </Link>
-          ) : (
-            <div />
-          )}
-        </div>
-      </div>
-
-      {/* Content */}
-      {renderContent?.()}
-
-      {/* Bottom CTA: go to questions */}
-      {hasQuestions && (
-        <div className="mx-auto max-w-3xl px-4 sm:px-8 pb-16">
-          <div className="border-t border-j-border pt-12 text-center">
-            <p className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mb-4">
-              Siguiente paso
-            </p>
-            <Link
-              href={`/learn/${resourceId}/questions`}
-              className="inline-block font-mono text-[10px] tracking-[0.15em] bg-j-accent text-j-text-on-accent px-6 py-2.5 uppercase hover:bg-j-accent-hover transition-colors"
-            >
-              Preguntas Guía →
-            </Link>
-          </div>
-        </div>
-      )}
+    <div className="flex min-h-screen flex-col items-center justify-center bg-j-bg p-8">
+      <p className="mb-4 text-j-text-secondary">Contenido no disponible aún para este recurso.</p>
+      <Link href="/dashboard" className="text-j-accent hover:underline">
+        ← Volver al dashboard
+      </Link>
     </div>
   );
 }

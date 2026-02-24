@@ -7,7 +7,7 @@ import { createLogger } from '@/lib/logger';
 const log = createLogger('Review/ByResource');
 
 /**
- * GET /api/review/by-resource?resourceId=ddia-ch5
+ * GET /api/review/by-resource?resourceId=<resource-id>
  * Returns ALL active question_bank questions for concepts covered by a resource.
  * Questions are matched via resource_sections (concept_id) and ordered by concept + difficulty.
  */

@@ -52,9 +52,4 @@ export const TABLES = {
 
   // Pipeline
   pipelineJobs: 'pipeline_jobs',
-
-  // Curriculum
-  curricula: 'curricula',
-  curriculumPhases: 'curriculum_phases',
-  curriculumResources: 'curriculum_resources',
 } as const;

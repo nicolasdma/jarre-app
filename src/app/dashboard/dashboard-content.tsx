@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowUp } from 'lucide-react';
 import type { Language } from '@/lib/translations';
-import { t } from '@/lib/translations';
-import { CornerBrackets } from '@/components/ui/corner-brackets';
 import { PipelineCourseCard, type PipelineCourseData } from './pipeline-course-card';
 
 const STAGE_LABELS: Record<string, Record<string, string>> = {
@@ -39,8 +37,6 @@ interface DashboardStats {
 
 interface DashboardContentProps {
   courses: PipelineCourseData[];
-  // TODO: Re-enable when curriculum feature is ready
-  // curricula: CurriculumSummary[];
   language: Language;
   stats: DashboardStats;
 }
@@ -248,107 +244,7 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
           </div>
         )}
 
-        {/* TODO: Curriculum CTA — re-enable when curriculum feature is ready
-        {!isProcessing && status !== 'completed' && (
-          <div className="mt-4 px-2">
-            <button
-              onClick={() => setShowCurriculumForm(true)}
-              className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.15em] text-j-text-tertiary hover:text-j-accent transition-colors"
-            >
-              <Sparkles size={14} />
-              {language === 'es'
-                ? 'O genera un curriculum completo con IA'
-                : 'Or generate a full AI curriculum'}
-            </button>
-          </div>
-        )}
-        */}
       </div>
-
-      {/* TODO: Curriculum Form Modal — re-enable when curriculum feature is ready
-      {showCurriculumForm && (
-        <CurriculumForm
-          language={language}
-          onClose={() => setShowCurriculumForm(false)}
-        />
-      )}
-      */}
-
-      {/* TODO: Revisit stats cards design
-      {stats.totalCourses > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 mb-12">
-          <div className="relative text-center p-4">
-            <CornerBrackets size="sm" className="border-j-border dark:border-j-accent/20" />
-            <p className="text-2xl sm:text-3xl font-light text-j-text">{stats.totalCourses}</p>
-            <p className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mt-2">
-              {language === 'es' ? 'Cursos' : 'Courses'}
-            </p>
-          </div>
-          <div className="relative text-center p-4">
-            <CornerBrackets size="sm" className="border-j-border dark:border-j-accent/20" />
-            <p className="text-2xl sm:text-3xl font-light text-j-accent">{stats.totalSections}</p>
-            <p className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mt-2">
-              {language === 'es' ? 'Secciones' : 'Sections'}
-            </p>
-          </div>
-          <div className="relative text-center p-4">
-            <CornerBrackets size="sm" className="border-j-border dark:border-j-accent/20" />
-            <p className="text-2xl sm:text-3xl font-light text-j-accent">{stats.evaluatedCount}</p>
-            <p className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mt-2">
-              {t('library.evaluated', language)}
-            </p>
-          </div>
-          <div className="relative text-center p-4">
-            <CornerBrackets size="sm" className="border-j-border dark:border-j-accent/20" />
-            <p className="text-2xl sm:text-3xl font-light text-j-warm-dark">
-              {stats.avgScore > 0 ? `${stats.avgScore}%` : '—'}
-            </p>
-            <p className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mt-2">
-              {language === 'es' ? 'Promedio' : 'Average'}
-            </p>
-          </div>
-        </div>
-      )}
-      */}
-
-      {/* TODO: Curricula section — re-enable when curriculum feature is ready
-      {curricula.length > 0 && (
-        <>
-          <h2 className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mb-6">
-            {language === 'es' ? 'Mis Currículas' : 'My Curricula'}
-            <span className="ml-2 text-j-text-secondary">({curricula.length})</span>
-          </h2>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-12">
-            {curricula.map((c) => (
-              <Link
-                key={c.id}
-                href={`/curriculum/${c.id}`}
-                className="group relative border border-j-border p-5 hover:border-j-accent transition-colors"
-              >
-                <div className="flex items-start gap-3 mb-3">
-                  <BookOpen size={16} className="text-j-accent mt-0.5 shrink-0" />
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-medium text-j-text group-hover:text-j-accent transition-colors truncate">
-                      {c.title}
-                    </h3>
-                    <p className="text-[11px] text-j-text-tertiary mt-0.5 truncate">{c.topic}</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 font-mono text-[10px] text-j-text-tertiary">
-                  <span>{c.phaseCount} {language === 'es' ? 'fases' : 'phases'}</span>
-                  <span>{c.resourceCount} {language === 'es' ? 'recursos' : 'resources'}</span>
-                  {c.materializedCount > 0 && (
-                    <span className="text-j-accent">{c.materializedCount} {language === 'es' ? 'listos' : 'ready'}</span>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </>
-      )}
-      */}
 
       {/* Section header */}
       {courses.length > 0 && (
