@@ -8,16 +8,13 @@ import 'katex/dist/katex.min.css';
 import { ConceptVisual, hasConceptVisual } from './concept-visuals';
 import { InlineQuiz } from './inline-quiz';
 import { useVideoSeek } from '@/components/contexts/video-seek-context';
-import { injectFigures } from '@/lib/figure-injector';
 import { splitAtBoldHeadings } from '@/lib/markdown-splitter';
-import type { FigureRegistry } from '@/lib/figure-registry';
 import type { InlineQuiz as InlineQuizType, VideoSegment as VideoSegmentType } from '@/types';
 
 interface SectionContentProps {
   markdown: string;
   conceptId?: string;
   sectionIndex?: number;
-  figures?: FigureRegistry;
   inlineQuizzes?: InlineQuizType[];
   videoSegments?: VideoSegmentType[];
 }
@@ -123,20 +120,15 @@ const markdownComponents = {
  * Uses react-markdown + remark-gfm for tables/strikethrough support.
  * Styled to match Jarre's design system.
  *
- * When figures are provided, injects images at caption positions.
  * When inlineQuizzes are provided, interleaves quiz components between content segments.
  */
 export function SectionContent({
   markdown,
   conceptId,
   sectionIndex,
-  figures,
   inlineQuizzes,
   videoSegments,
 }: SectionContentProps) {
-  // Pre-process markdown to inject figure images at caption positions
-  const processed = figures ? injectFigures(markdown, figures) : markdown;
-
   // If quizzes or video segments are provided, split content and interleave
   const hasQuizzes = inlineQuizzes && inlineQuizzes.length > 0;
   const hasVideoSegments = videoSegments && videoSegments.length > 0;
@@ -150,7 +142,7 @@ export function SectionContent({
 
       {needsInterleaving ? (
         <InterleavedContent
-          markdown={processed}
+          markdown={markdown}
           quizzes={inlineQuizzes ?? []}
           videoSegments={videoSegments ?? []}
         />
@@ -161,7 +153,7 @@ export function SectionContent({
             rehypePlugins={[rehypeKatex]}
             components={markdownComponents}
           >
-            {processed}
+            {markdown}
           </ReactMarkdown>
         </div>
       )}

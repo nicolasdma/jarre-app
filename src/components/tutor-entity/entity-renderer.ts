@@ -450,22 +450,6 @@ export function paintEntityFrame(
 }
 
 // ---------------------------------------------------------------------------
-// Legacy API — kept for backward compatibility (used by nothing now)
-// ---------------------------------------------------------------------------
-
-export function renderEntityFrame(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  params: EntityStateParams,
-  time: number,
-  focalPoint?: { x: number; y: number } | null,
-): void {
-  computeEntityFrame(width, height, params, time, focalPoint);
-  paintEntityFrame(ctx, width, height, params, focalPoint, time);
-}
-
-// ---------------------------------------------------------------------------
 // Mini renderer — tiny torus for mobile 44x44 (unchanged, already fast)
 // ---------------------------------------------------------------------------
 

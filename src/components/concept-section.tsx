@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useRef, memo } from 'react';
 import { AnnotatedContent } from './annotated-content';
 import { t, type Language } from '@/lib/translations';
 import type { ReviewSubmitResponse, InlineQuiz, VideoSegment, Exercise, ExerciseResult } from '@/types';
-import type { FigureRegistry } from '@/lib/figure-registry';
 import { useWhisper } from '@/lib/whisper/whisper-context';
 import type { SectionState } from '@/lib/learn-progress';
 import { ExerciseShell } from '@/components/exercises/exercise-shell';
@@ -31,7 +30,6 @@ interface ConceptSectionProps {
   onActivate?: () => void;
   initialState?: SectionState;
   onStateChange?: (state: SectionState) => void;
-  figureRegistry?: FigureRegistry;
   inlineQuizzes?: InlineQuiz[];
   videoSegments?: VideoSegment[];
   exercises?: Exercise[];
@@ -59,7 +57,6 @@ export const ConceptSection = memo(function ConceptSection({
   onActivate,
   initialState,
   onStateChange,
-  figureRegistry,
   inlineQuizzes,
   videoSegments,
   exercises,
@@ -375,7 +372,6 @@ export const ConceptSection = memo(function ConceptSection({
             markdown={section.contentMarkdown}
             conceptId={section.conceptId}
             sectionIndex={section.sortOrder}
-            figures={figureRegistry}
             inlineQuizzes={inlineQuizzes}
             videoSegments={videoSegments}
           />

@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { GenericActivate } from '@/components/generic-activate';
 import { LearnFlow } from '@/components/learn-flow';
-import { FIGURE_REGISTRY } from '@/lib/figure-registry';
 import {
   getTranslatedSections,
   getTranslatedActivateData,
@@ -203,7 +202,6 @@ export default async function LearnPage({ params }: PageProps) {
         concepts={conceptsTaught}
         userId={user.id}
         initialProgress={initialProgress}
-        figureRegistry={FIGURE_REGISTRY}
         quizzesBySectionId={quizzesBySectionId}
         videoSegmentsBySectionId={videoSegmentsBySectionId}
       />

@@ -6,7 +6,6 @@ import { SelectionPopover } from './selection-popover';
 import { HighlightLayer } from './highlight-layer';
 import { createAnchor } from '@/lib/text-anchor';
 import type { Annotation, InlineQuiz, VideoSegment } from '@/types';
-import type { FigureRegistry } from '@/lib/figure-registry';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('AnnotatedContent');
@@ -16,7 +15,6 @@ interface AnnotatedContentProps {
   markdown: string;
   conceptId?: string;
   sectionIndex?: number;
-  figures?: FigureRegistry;
   inlineQuizzes?: InlineQuiz[];
   videoSegments?: VideoSegment[];
 }
@@ -30,7 +28,6 @@ export function AnnotatedContent({
   markdown,
   conceptId,
   sectionIndex,
-  figures,
   inlineQuizzes,
   videoSegments,
 }: AnnotatedContentProps) {
@@ -119,7 +116,6 @@ export function AnnotatedContent({
         markdown={markdown}
         conceptId={conceptId}
         sectionIndex={sectionIndex}
-        figures={figures}
         inlineQuizzes={inlineQuizzes}
         videoSegments={videoSegments}
       />
