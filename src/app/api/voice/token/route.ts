@@ -34,7 +34,10 @@ export const POST = withAuth(async (request) => {
     throw badRequest('systemInstruction is required');
   }
 
-  const client = new GoogleGenAI({ apiKey });
+  const client = new GoogleGenAI({
+    apiKey,
+    httpOptions: { apiVersion: 'v1alpha' },
+  });
 
   const authToken = await client.authTokens.create({
     config: {

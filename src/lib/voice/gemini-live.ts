@@ -116,6 +116,7 @@ export function createGeminiLiveClient(callbacks: GeminiLiveCallbacks) {
       try {
         const client = new GoogleGenAI({
           apiKey: ephemeralToken,
+          httpOptions: { apiVersion: 'v1alpha' },
         });
 
         session = await client.live.connect({
