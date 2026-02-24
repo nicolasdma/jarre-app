@@ -5,6 +5,9 @@ import dynamic from 'next/dynamic';
 import { SplitPaneLayout } from './split-pane-layout';
 import { PdfViewer } from './pdf-viewer';
 import { t, type Language } from '@/lib/translations';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('StudyView');
 
 // Dynamic import for tldraw (no SSR, ~500KB bundle)
 const CanvasNotes = dynamic(
@@ -57,13 +60,13 @@ export function StudyView({
         });
 
         if (!response.ok) {
-          console.error('[StudyView] Failed to save canvas:', await response.text());
+          log.error(' Failed to save canvas:', await response.text());
           setSaveError(true);
         } else {
           setSaveError(false);
         }
       } catch (error) {
-        console.error('[StudyView] Error saving canvas:', error);
+        log.error(' Error saving canvas:', error);
         setSaveError(true);
       } finally {
         setIsSaving(false);
@@ -95,10 +98,10 @@ export function StudyView({
           });
 
           if (!response.ok) {
-            console.error('[StudyView] Failed to save layout:', await response.text());
+            log.error(' Failed to save layout:', await response.text());
           }
         } catch (error) {
-          console.error('[StudyView] Error saving layout:', error);
+          log.error(' Error saving layout:', error);
         }
       }, 500);
     },

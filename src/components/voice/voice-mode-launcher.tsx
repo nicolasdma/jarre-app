@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Mic, Swords } from 'lucide-react';
-import { VoiceSessionOverlay } from './VoiceSessionOverlay';
+import { VoiceSessionOverlay } from './voice-session-overlay';
 import type { Language } from '@/lib/translations';
 
 interface VoiceModeLauncherProps {

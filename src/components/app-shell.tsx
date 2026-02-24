@@ -4,26 +4,26 @@ import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import type { Language } from '@/lib/translations';
-import { useTutorContext } from '@/lib/tutor-context';
+import { useTutorContext } from '@/components/contexts/tutor-context';
 import { createLogger } from '@/lib/logger';
-import { TutorDialog } from './tutor-entity/TutorDialog';
+import { TutorDialog } from './tutor-entity/tutor-dialog';
 import { useUnifiedVoiceSession } from './voice/use-unified-voice-session';
-import { VoiceSidebarControls } from './voice/VoiceSidebarControls';
+import { VoiceSidebarControls } from './voice/voice-sidebar-controls';
 
 const log = createLogger('AppShell');
 
 const TutorEntity = dynamic(
-  () => import('./tutor-entity/TutorEntity').then((m) => ({ default: m.TutorEntity })),
+  () => import('./tutor-entity/tutor-entity').then((m) => ({ default: m.TutorEntity })),
   { ssr: false },
 );
 
 const MiniTutorEntity = dynamic(
-  () => import('./tutor-entity/MiniTutorEntity').then((m) => ({ default: m.MiniTutorEntity })),
+  () => import('./tutor-entity/mini-tutor-entity').then((m) => ({ default: m.MiniTutorEntity })),
   { ssr: false },
 );
 
 const MobileVoiceOverlay = dynamic(
-  () => import('./voice/MobileVoiceOverlay').then((m) => ({ default: m.MobileVoiceOverlay })),
+  () => import('./voice/mobile-voice-overlay').then((m) => ({ default: m.MobileVoiceOverlay })),
   { ssr: false },
 );
 

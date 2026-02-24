@@ -9,7 +9,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { VoiceAura } from './VoiceAura';
+import { VoiceAura } from './voice-aura';
 import type { TutorState } from '../use-voice-session';
 
 export interface VoiceAuraOverlayProps {

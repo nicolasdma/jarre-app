@@ -43,6 +43,7 @@ export function InsightBar({ language, onDebate, onFreeform }: InsightBarProps) 
 
   const dismiss = async (id: string) => {
     setInsights((prev) => prev.filter((i) => i.id !== id));
+    // Fire-and-forget: non-blocking status update
     await fetch('/api/insights', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -72,7 +73,7 @@ export function InsightBar({ language, onDebate, onFreeform }: InsightBarProps) 
         router.push('/review');
         break;
     }
-    // Mark as accepted
+    // Fire-and-forget: non-blocking status update
     fetch('/api/insights', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

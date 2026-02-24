@@ -228,7 +228,7 @@ export default async function EvaluationDetailPage({ params }: PageProps) {
           {/* Action buttons */}
           <div className="mt-4 flex gap-2">
             <Link
-              href={`/resource/${evalDetail.resource.id}`}
+              href={`/study/${evalDetail.resource.id}`}
               className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
             >
               ← {t('history.backToResource', lang)}
@@ -314,7 +314,7 @@ export default async function EvaluationDetailPage({ params }: PageProps) {
         {/* Bottom Actions */}
         <div className="mt-6 flex justify-center gap-4">
           <Link
-            href={`/resource/${evalDetail.resource.id}`}
+            href={`/study/${evalDetail.resource.id}`}
             className="rounded-lg border border-stone-200 px-6 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
           >
             ← {t('history.backToResource', lang)}

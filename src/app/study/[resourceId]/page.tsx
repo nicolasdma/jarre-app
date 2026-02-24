@@ -26,7 +26,7 @@ export default async function ResourcePage({ params }: PageProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?redirect=/resource/${resourceId}`);
+    redirect(`/login?redirect=/study/${resourceId}`);
   }
 
   // Get user's language preference
@@ -64,7 +64,7 @@ export default async function ResourcePage({ params }: PageProps) {
     .select('canvas_data, split_position')
     .eq('user_id', user.id)
     .eq('resource_id', resourceId)
-    .single();
+    .maybeSingle();
 
   const canvasData = notesData?.canvas_data ?? null;
   const splitPosition = notesData?.split_position ?? 50;

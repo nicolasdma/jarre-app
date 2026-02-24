@@ -5,7 +5,7 @@ import { SectionLabel } from '@/components/ui/section-label';
 import { TABLES } from '@/lib/db/tables';
 import Link from 'next/link';
 import type { Language } from '@/lib/translations';
-import { InsightBar } from '@/components/insights/InsightBar';
+import { InsightBar } from '@/components/insights/insight-bar';
 
 export default async function JournalPage() {
   const supabase = await createClient();

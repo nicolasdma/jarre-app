@@ -4,6 +4,9 @@ import { useCallback, useRef, useEffect } from 'react';
 import { Tldraw, Editor, getSnapshot, loadSnapshot, TLStoreSnapshot } from 'tldraw';
 import 'tldraw/tldraw.css';
 import { t, type Language } from '@/lib/translations';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Canvas');
 
 interface CanvasNotesProps {
   resourceId: string;
@@ -49,7 +52,7 @@ export function CanvasNotes({ resourceId, initialData, language, onSave }: Canva
         try {
           loadSnapshot(editor.store, initialData as TLStoreSnapshot);
         } catch (err) {
-          console.error('[Canvas] Failed to load snapshot:', err);
+          log.error('Failed to load snapshot:', err);
         }
       }
 

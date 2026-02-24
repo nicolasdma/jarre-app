@@ -5,8 +5,8 @@ import { SectionLabel } from '@/components/ui/section-label';
 import { TABLES } from '@/lib/db/tables';
 import Link from 'next/link';
 import { ArrowLeft, ExternalLink, Link2 } from 'lucide-react';
-import { DiscussWithTutorButton } from '@/components/resources/DiscussWithTutorButton';
-import { VoiceModeLauncher } from '@/components/voice/VoiceModeLauncher';
+import { DiscussWithTutorButton } from '@/components/resources/discuss-with-tutor-button';
+import { VoiceModeLauncher } from '@/components/voice/voice-mode-launcher';
 import { ResourceActions } from './resource-actions';
 import type { Language } from '@/lib/translations';
 

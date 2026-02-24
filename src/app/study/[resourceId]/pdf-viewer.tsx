@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { FileText, ZoomIn, ZoomOut } from 'lucide-react';
 import { t, type Language } from '@/lib/translations';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('PdfViewer');
 
 interface PdfViewerProps {
   url: string | null;
@@ -57,7 +60,7 @@ export function PdfViewer({ url, title, language, startPage, endPage }: PdfViewe
         setLoading(false);
       } catch (err) {
         if (cancelled) return;
-        console.error('[PdfViewer] Error loading PDF:', err);
+        log.error(' Error loading PDF:', err);
         setError('Failed to load PDF');
         setLoading(false);
       }
@@ -87,7 +90,7 @@ export function PdfViewer({ url, title, language, startPage, endPage }: PdfViewe
 
       setRenderedPages(prev => new Map(prev).set(pageNum, canvas));
     } catch (err) {
-      console.error(`[PdfViewer] Error rendering page ${pageNum}:`, err);
+      log.error(`Error rendering page ${pageNum}:`, err);
     }
   }, [pdf, scale, renderedPages]);
 
@@ -104,7 +107,7 @@ export function PdfViewer({ url, title, language, startPage, endPage }: PdfViewe
         // Use fit scale but ensure at least 2.0 for readability
         setScale(Math.max(fitScale, 2.0));
       } catch (err) {
-        console.error('[PdfViewer] Error fitting to width:', err);
+        log.error(' Error fitting to width:', err);
       }
     }
 
