@@ -429,8 +429,8 @@ export const ConceptSection = memo(function ConceptSection({
 
           {section.pendingTranslation && (
             <div className="bg-j-bg-alt border border-j-border px-3 py-2 mb-4 flex items-center gap-2">
-              <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-j-text-tertiary">
-                {language === 'es' ? 'Contenido original — traducción en progreso' : 'Original content — translation in progress'}
+              <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-j-text-tertiary animate-pulse">
+                {language === 'es' ? 'Contenido original — traduciendo…' : 'Original content — translating…'}
               </span>
             </div>
           )}

@@ -16,6 +16,7 @@ interface InlineQuizData {
   correctAnswer: string;
   explanation: string;
   justificationHint?: string;
+  pendingTranslation?: boolean;
 }
 
 interface LlmResult {
@@ -458,7 +459,14 @@ export function InlineQuiz({ quiz, overrideState, onAnswer }: InlineQuizProps) {
   const resultConfig = getResultConfig();
 
   return (
-    <div className="bg-j-bg-alt border border-j-border border-l-2 border-l-j-warm p-6 my-8">
+    <div className={`bg-j-bg-alt border border-j-border border-l-2 border-l-j-warm p-6 my-8 ${quiz.pendingTranslation ? 'relative' : ''}`}>
+      {quiz.pendingTranslation && (
+        <div className="absolute top-2 right-3">
+          <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-j-text-tertiary animate-pulse">
+            Traduciendo…
+          </span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <p className="font-mono text-[10px] tracking-[0.2em] text-j-warm uppercase">

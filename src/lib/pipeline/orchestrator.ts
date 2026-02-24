@@ -15,7 +15,6 @@ import { logTokenUsage } from '@/lib/db/token-usage';
 import { resolveYouTube } from './stages/resolve-youtube';
 import { segmentContent } from './stages/segment-content';
 import { generateSections } from './stages/generate-sections';
-import { translateContent } from './stages/translate-content';
 import { generateQuizzes } from './stages/generate-quizzes';
 import { mapVideoSegments } from './stages/map-video-segments';
 import { linkConceptsStage } from './stages/link-concepts';
@@ -275,15 +274,13 @@ async function executePipeline(
       });
     }
 
-    // Stage 3: Generate Content + Translation
+    // Stage 3: Generate Content (in original language — translation is on-demand)
     if (!data.content) {
       await updateJob(jobId, { current_stage: 'content' });
       log.info(`[${jobId}] Stage 3/${PIPELINE_TOTAL_STAGES}: Generating section content...`);
 
       const videoTitle = config.title || data.resolve.title;
-      const targetLang = config.targetLanguage;
 
-      // Generate content in the video's language first
       const { output: rawContent, tokensUsed: contentTokens } = await generateSections(
         data.segment,
         videoTitle,
@@ -291,15 +288,7 @@ async function executePipeline(
       );
       totalTokens += contentTokens;
 
-      // Translate if needed
-      const { output: finalContent, tokensUsed: translateTokens } = await translateContent(
-        rawContent,
-        data.resolve.language,
-        targetLang,
-      );
-      totalTokens += translateTokens;
-
-      data.content = finalContent;
+      data.content = rawContent;
       stagesCompleted++;
 
       await updateJob(jobId, {
@@ -335,7 +324,7 @@ async function executePipeline(
                 contentOutput: data.content!,
                 videoTitle: config.title || data.resolve!.title,
                 userId: config.userId,
-                language: config.targetLanguage,
+                language: data.resolve!.language,
                 supabase,
               });
             })()
@@ -378,6 +367,7 @@ async function executePipeline(
         concepts: data.concepts!,
         userId: config.userId,
         title: config.title,
+        language: data.resolve!.language,
       });
       stagesCompleted++;
 
@@ -425,7 +415,7 @@ async function executePipeline(
         jobId,
         data.content!,
         data.write!.resourceId,
-        config.targetLanguage,
+        data.resolve!.language,
         config.userId,
       ).catch((err) => {
         log.error(`[${jobId}] Background quiz generation crashed: ${(err as Error).message}`);

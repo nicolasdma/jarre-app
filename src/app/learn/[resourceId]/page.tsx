@@ -190,14 +190,14 @@ export default async function LearnPage({ params }: PageProps) {
         : Promise.resolve(defaultSections),
       needsTranslation
         ? getTranslatedActivateData(resourceId, resource.activate_data as ActivateData | null, resourceLang, language, user.id)
-        : Promise.resolve(resource.activate_data),
+        : Promise.resolve(resource.activate_data ? { data: resource.activate_data as ActivateData, pendingTranslation: false } : null),
     ]);
 
     const quizzesRaw = quizzesResult.data;
     const videoSegmentsRaw = videoSegmentsResult.data;
 
     // Translate quizzes (needs quizzesRaw, so runs after the parallel batch)
-    const translatedQuizMap = needsTranslation && quizzesRaw && quizzesRaw.length > 0
+    const quizTranslationResult = needsTranslation && quizzesRaw && quizzesRaw.length > 0
       ? await getTranslatedQuizzes(
           quizzesRaw.map((q) => ({
             id: q.id,
@@ -212,6 +212,8 @@ export default async function LearnPage({ params }: PageProps) {
           user.id,
         )
       : null;
+    const translatedQuizMap = quizTranslationResult?.translations ?? null;
+    const pendingQuizIds = quizTranslationResult?.pendingIds ?? new Set<string>();
 
     // Group quizzes by section_id
     const quizzesBySectionId: Record<string, InlineQuiz[]> = {};
@@ -229,6 +231,7 @@ export default async function LearnPage({ params }: PageProps) {
           correctAnswer: q.correct_answer,
           explanation: translated?.explanation ?? q.explanation,
           justificationHint: translated?.justificationHint ?? q.justification_hint ?? undefined,
+          ...(pendingQuizIds.has(q.id) ? { pendingTranslation: true } : {}),
         };
         const arr = quizzesBySectionId[q.section_id] ?? [];
         arr.push(quiz);
@@ -263,7 +266,7 @@ export default async function LearnPage({ params }: PageProps) {
         resourceTitle={resource.title}
         resourceType={resource.type}
         sections={flowSections}
-        activateComponent={renderContent?.() ?? (translatedActivateData ? <GenericActivate data={translatedActivateData} title={resource.title} /> : undefined)}
+        activateComponent={renderContent?.() ?? (translatedActivateData ? <GenericActivate data={translatedActivateData.data} title={resource.title} pendingTranslation={translatedActivateData.pendingTranslation} /> : undefined)}
         playgroundHref={practical?.href}
         playgroundLabel={practical?.label}
         concepts={conceptsTaught}

@@ -272,6 +272,7 @@ function InterleavedContent({
                   correctAnswer: quiz.correctAnswer,
                   explanation: quiz.explanation,
                   justificationHint: quiz.justificationHint,
+                  pendingTranslation: quiz.pendingTranslation,
                 }}
               />
             ))}

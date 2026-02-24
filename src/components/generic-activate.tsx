@@ -19,11 +19,20 @@ interface ActivateData {
 interface GenericActivateProps {
   data: ActivateData;
   title: string;
+  pendingTranslation?: boolean;
 }
 
-export function GenericActivate({ data, title }: GenericActivateProps) {
+export function GenericActivate({ data, title, pendingTranslation }: GenericActivateProps) {
   return (
-    <article className="mx-auto max-w-3xl px-8 py-16">
+    <article className="mx-auto max-w-3xl px-8 py-16 relative">
+      {pendingTranslation && (
+        <div className="absolute inset-0 z-10 flex items-start justify-center pt-32 pointer-events-none">
+          <span className="font-mono text-[11px] tracking-[0.15em] uppercase text-j-text-tertiary bg-j-bg/80 border border-j-border px-4 py-2 backdrop-blur-sm animate-pulse">
+            Traduciendo contenido…
+          </span>
+        </div>
+      )}
+      <div className={pendingTranslation ? 'opacity-40 select-none' : ''}>
       {/* Hero */}
       <header className="mb-20">
         <div className="flex items-center gap-2 mb-6">
@@ -90,6 +99,7 @@ export function GenericActivate({ data, title }: GenericActivateProps) {
         <p className="text-j-text leading-relaxed">
           {data.insight}
         </p>
+      </div>
       </div>
     </article>
   );

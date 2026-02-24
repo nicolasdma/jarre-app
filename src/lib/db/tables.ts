@@ -45,6 +45,11 @@ export const TABLES = {
   consumptionLog: 'consumption_log',
   insightSuggestions: 'insight_suggestions',
 
+  // Translation cache
+  sectionTranslations: 'section_translations',
+  resourceTranslations: 'resource_translations',
+  quizTranslations: 'quiz_translations',
+
   // Pipeline
   pipelineJobs: 'pipeline_jobs',
 

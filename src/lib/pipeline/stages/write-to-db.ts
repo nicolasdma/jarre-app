@@ -42,8 +42,9 @@ export async function writeToDb(params: {
   concepts: ConceptOutput;
   userId: string;
   title?: string;
+  language: string;
 }): Promise<WriteOutput> {
-  const { resolve, content, quizzes, videoMap, concepts, userId, title } = params;
+  const { resolve, content, quizzes, videoMap, concepts, userId, title, language } = params;
   const supabase = createAdminClient();
   const resourceId = generateResourceId(resolve.videoId);
 
@@ -99,6 +100,7 @@ export async function writeToDb(params: {
       .from(TABLES.resources)
       .update({
         title: title || resolve.title,
+        language,
         activate_data: content.activateData as unknown as Record<string, unknown>,
         updated_at: new Date().toISOString(),
       })
@@ -112,6 +114,7 @@ export async function writeToDb(params: {
       title: title || resolve.title,
       type: 'lecture',
       phase: '0',
+      language,
       author: null,
       url: `https://www.youtube.com/watch?v=${resolve.videoId}`,
       is_archived: false,

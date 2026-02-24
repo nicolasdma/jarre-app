@@ -99,6 +99,44 @@ IMPORTANT: Return ONLY the translated markdown. No JSON wrapping, no preamble, n
   return { translated: content.trim(), tokensUsed };
 }
 
+async function translatePlainText(
+  text: string,
+  fromLang: string,
+  toLang: string,
+  context: string,
+): Promise<{ translated: string; tokensUsed: number }> {
+  const fromName = LANG_NAMES[fromLang] || fromLang;
+  const toName = LANG_NAMES[toLang] || toLang;
+
+  const { content, tokensUsed } = await callDeepSeek({
+    messages: [
+      {
+        role: 'system',
+        content: `You are a technical translator. Translate the following plain text from ${fromName} to ${toName}.
+
+Rules:
+- This is PLAIN TEXT, not markdown. Do NOT add any formatting: no **, no *, no backticks, no headers, no bullet points.
+- Keep technical terms in English when they are standard (e.g., "backpropagation", "gradient descent", "API", "cache")
+- Translate explanatory text naturally, not word-for-word
+- Preserve any separator tokens exactly as they appear (e.g., ===SEPARATOR===, ---)
+
+IMPORTANT: Return ONLY the translated text. No JSON wrapping, no preamble, no explanation. No added formatting.`,
+      },
+      {
+        role: 'user',
+        content: `Context: "${context}"\n\n${text}`,
+      },
+    ],
+    temperature: 0.2,
+    maxTokens: TOKEN_BUDGETS.PIPELINE_TRANSLATE,
+    responseFormat: 'text',
+    timeoutMs: 90_000,
+    retryOnTimeout: true,
+  });
+
+  return { translated: content.trim(), tokensUsed };
+}
+
 // ---------------------------------------------------------------------------
 // Section translations
 // ---------------------------------------------------------------------------
@@ -182,7 +220,7 @@ export async function getTranslatedSections(
         section.section_title,
       );
 
-      const { translated: translatedTitle, tokensUsed: titleTokens } = await translateMarkdown(
+      const { translated: translatedTitle, tokensUsed: titleTokens } = await translatePlainText(
         section.section_title,
         resourceLanguage,
         targetLanguage,
@@ -247,9 +285,9 @@ export async function getTranslatedActivateData(
   resourceLanguage: string,
   targetLanguage: string,
   userId: string,
-): Promise<ActivateData | null> {
+): Promise<{ data: ActivateData; pendingTranslation: boolean } | null> {
   if (!activateData) return null;
-  if (resourceLanguage === targetLanguage) return activateData;
+  if (resourceLanguage === targetLanguage) return { data: activateData, pendingTranslation: false };
 
   const supabase = createAdminClient();
   const currentHash = md5Hash(JSON.stringify(activateData));
@@ -263,7 +301,7 @@ export async function getTranslatedActivateData(
     .single();
 
   if (cached && cached.content_hash === currentHash) {
-    return cached.activate_data as ActivateData;
+    return { data: cached.activate_data as ActivateData, pendingTranslation: false };
   }
 
   // Fire-and-forget: translate in background, return original now
@@ -277,7 +315,7 @@ export async function getTranslatedActivateData(
         ...activateData.sections.map((s) => `${s.title}: ${s.description}`),
       ].join('\n---\n');
 
-      const { translated, tokensUsed } = await translateMarkdown(
+      const { translated, tokensUsed } = await translatePlainText(
         textToTranslate,
         resourceLanguage,
         targetLanguage,
@@ -324,8 +362,8 @@ export async function getTranslatedActivateData(
     }
   })();
 
-  // Return original content immediately
-  return activateData;
+  // Return original content immediately with pending flag
+  return { data: activateData, pendingTranslation: true };
 }
 
 // ---------------------------------------------------------------------------
@@ -358,20 +396,21 @@ export async function getTranslatedQuizzes(
   resourceLanguage: string,
   targetLanguage: string,
   userId: string,
-): Promise<Map<string, TranslatedQuizFields>> {
-  const result = new Map<string, TranslatedQuizFields>();
+): Promise<{ translations: Map<string, TranslatedQuizFields>; pendingIds: Set<string> }> {
+  const translations = new Map<string, TranslatedQuizFields>();
+  const pendingIds = new Set<string>();
 
-  if (quizzes.length === 0) return result;
+  if (quizzes.length === 0) return { translations, pendingIds };
   if (resourceLanguage === targetLanguage) {
     for (const q of quizzes) {
-      result.set(q.id, {
+      translations.set(q.id, {
         questionText: q.question_text,
         options: q.options,
         explanation: q.explanation,
         justificationHint: q.justification_hint,
       });
     }
-    return result;
+    return { translations, pendingIds };
   }
 
   const supabase = createAdminClient();
@@ -394,7 +433,7 @@ export async function getTranslatedQuizzes(
     const cached = cacheMap.get(quiz.id);
     const currentHash = md5Hash(quiz.question_text + quiz.explanation);
     if (cached && cached.content_hash === currentHash) {
-      result.set(quiz.id, {
+      translations.set(quiz.id, {
         questionText: cached.question_text,
         options: cached.options as TranslatedQuizFields['options'],
         explanation: cached.explanation,
@@ -407,7 +446,8 @@ export async function getTranslatedQuizzes(
 
   // Fill in uncached quizzes with original content immediately
   for (const quiz of needsTranslation) {
-    result.set(quiz.id, {
+    pendingIds.add(quiz.id);
+    translations.set(quiz.id, {
       questionText: quiz.question_text,
       options: quiz.options,
       explanation: quiz.explanation,
@@ -430,7 +470,7 @@ export async function getTranslatedQuizzes(
         quiz.justification_hint || '',
       ];
 
-      const { translated, tokensUsed } = await translateMarkdown(
+      const { translated, tokensUsed } = await translatePlainText(
         parts.join('\n===SEPARATOR===\n'),
         resourceLanguage,
         targetLanguage,
@@ -484,5 +524,5 @@ export async function getTranslatedQuizzes(
       .catch((err) => log.error(`Background quiz translation failed: ${err}`));
   }
 
-  return result;
+  return { translations, pendingIds };
 }
