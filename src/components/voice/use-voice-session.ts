@@ -73,11 +73,7 @@ interface VoiceSession {
 // ============================================================================
 
 const MIC_CHUNK_INTERVAL_MS = 100;
-// Session end signal: the voice prompt instructs the tutor to say this exact phrase when done.
-// Must be specific enough to never appear in normal explanations — "quiz" alone caused false positives.
-// Word boundaries prevent partial matches (e.g. "session completely" won't trigger).
 const SESSION_END_KEYWORD = /\bsession complete\b/i;
-// Minimum elapsed seconds before session end detection activates (prevents false triggers)
 const MIN_ELAPSED_FOR_END_S = 120;
 
 // ============================================================================

@@ -14,11 +14,11 @@ import { GoogleGenAI, Modality } from '@google/genai';
 import { withAuth } from '@/lib/api/middleware';
 import { badRequest, jsonOk } from '@/lib/api/errors';
 import { createLogger } from '@/lib/logger';
+import { GEMINI_VOICE_MODEL, GEMINI_VOICE_NAME } from '@/lib/constants';
 
 const log = createLogger('VoiceToken');
 
-const MODEL = 'gemini-2.5-flash-native-audio-preview-12-2025';
-const VOICE_NAME = 'Kore';
+const MAX_SYSTEM_INSTRUCTION_BYTES = 50_000;
 
 export const POST = withAuth(async (request) => {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -34,6 +34,10 @@ export const POST = withAuth(async (request) => {
     throw badRequest('systemInstruction is required');
   }
 
+  if (new TextEncoder().encode(systemInstruction).length > MAX_SYSTEM_INSTRUCTION_BYTES) {
+    throw badRequest(`systemInstruction exceeds ${MAX_SYSTEM_INSTRUCTION_BYTES} byte limit`);
+  }
+
   const client = new GoogleGenAI({
     apiKey,
     httpOptions: { apiVersion: 'v1alpha' },
@@ -44,13 +48,13 @@ export const POST = withAuth(async (request) => {
       uses: 1,
       expireTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
       liveConnectConstraints: {
-        model: MODEL,
+        model: GEMINI_VOICE_MODEL,
         config: {
           responseModalities: [Modality.AUDIO],
           systemInstruction: { parts: [{ text: systemInstruction }] },
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: VOICE_NAME },
+              prebuiltVoiceConfig: { voiceName: GEMINI_VOICE_NAME },
             },
           },
           inputAudioTranscription: {},
