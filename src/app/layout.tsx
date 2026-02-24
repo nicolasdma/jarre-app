@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/app-shell";
-import { TutorContextProvider } from "@/lib/tutor-context";
+import { TutorContextProvider } from "@/components/contexts/tutor-context";
 import type { Language } from "@/lib/translations";
 import "./globals.css";
 

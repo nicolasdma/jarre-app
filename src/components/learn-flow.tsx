@@ -14,7 +14,7 @@ import { t, type Language } from '@/lib/translations';
 import { PracticeEvalStep } from './practice-eval-step';
 import { saveLearnProgress, type LearnProgress, type SectionState, type PracticeEvalState } from '@/lib/learn-progress';
 import { WhisperProvider } from '@/lib/whisper/whisper-context';
-import { useTutorContext } from '@/lib/tutor-context';
+import { useTutorContext } from '@/components/contexts/tutor-context';
 import type { VoiceMode } from '@/lib/llm/voice-unified-prompt';
 import { createLogger } from '@/lib/logger';
 import { WhisperToggle } from './whisper-toggle';
@@ -23,7 +23,7 @@ const log = createLogger('LearnFlow');
 import type { FigureRegistry } from '@/lib/figure-registry';
 import type { InlineQuiz, VideoSegment, Exercise } from '@/types';
 import { StickyVideoPlayer } from './sticky-video-player';
-import { VideoSeekProvider } from '@/lib/video-seek-context';
+import { VideoSeekProvider } from '@/components/contexts/video-seek-context';
 
 // ============================================================================
 // Types
@@ -351,6 +351,7 @@ export function LearnFlow({
 
   useEffect(() => {
     if (currentStep !== 'practice-eval') return;
+    // Fire-and-forget: non-blocking progress update
     fetch(`/api/voice/practice-result?resourceId=${resourceId}`)
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {

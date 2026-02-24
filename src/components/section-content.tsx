@@ -7,7 +7,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { ConceptVisual, hasConceptVisual } from './concept-visuals';
 import { InlineQuiz } from './inline-quiz';
-import { useVideoSeek } from '@/lib/video-seek-context';
+import { useVideoSeek } from '@/components/contexts/video-seek-context';
 import { injectFigures } from '@/lib/figure-injector';
 import { splitAtBoldHeadings } from '@/lib/markdown-splitter';
 import type { FigureRegistry } from '@/lib/figure-registry';
