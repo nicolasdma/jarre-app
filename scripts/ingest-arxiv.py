@@ -9,14 +9,11 @@ a JSON file matching the resource_sections format used by seed-sections.ts.
 Usage:
   python scripts/ingest-arxiv.py 2005.11401
   python scripts/ingest-arxiv.py 2005.11401 --concept-id rag-basics
-  python scripts/ingest-arxiv.py 2005.11401 --translate
-
 Output:
   scripts/output/arxiv-2005.11401-sections.json
 
 Requires:
   pip install arxiv pymupdf4llm
-  (for --translate: pip install openai python-dotenv)
 """
 
 import argparse
@@ -362,41 +359,6 @@ def build_output(
     return output
 
 
-def run_translation(sections_file: Path) -> None:
-    """Run translation on the extracted sections by importing translate-chapter.py."""
-    import importlib.util
-    import os
-
-    try:
-        from dotenv import load_dotenv
-    except ImportError:
-        print("Error: --translate requires python-dotenv. Install: pip install python-dotenv")
-        sys.exit(1)
-
-    load_dotenv(".env.local")
-
-    api_key = os.getenv("DEEPSEEK_API_KEY")
-    if not api_key:
-        print("Error: DEEPSEEK_API_KEY not set in .env.local")
-        sys.exit(1)
-
-    # Import translate-chapter module
-    scripts_dir = Path(__file__).parent
-    translate_path = scripts_dir / "translate-chapter.py"
-    if not translate_path.exists():
-        print(f"Error: {translate_path} not found")
-        sys.exit(1)
-
-    spec = importlib.util.spec_from_file_location("translate_chapter", str(translate_path))
-    translate_mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(translate_mod)
-
-    # Run translation using translate-chapter's main logic
-    print(f"\nRunning translation on {sections_file}...")
-    sys.argv = ["translate-chapter.py", str(sections_file)]
-    translate_mod.main()
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Ingest arXiv paper: download, extract, segment, save JSON"
@@ -414,11 +376,6 @@ def main() -> None:
         "--resource-id",
         default=None,
         help="Resource ID (default: arxiv-{paper_id})"
-    )
-    parser.add_argument(
-        "--translate",
-        action="store_true",
-        help="Also run EN→ES translation after extraction"
     )
     parser.add_argument(
         "--output-dir",
@@ -477,16 +434,7 @@ def main() -> None:
     print(f"  Total words: {total_words}")
     print(f"  Output: {sections_file}")
 
-    # Step 5: Translate (optional)
-    if args.translate:
-        print(f"\n{'=' * 60}")
-        print(f"STEP 4: TRANSLATE")
-        print(f"{'=' * 60}")
-        run_translation(sections_file)
-    else:
-        print(f"\nNext steps:")
-        print(f"  Translate: python scripts/translate-chapter.py {sections_file}")
-        print(f"  Or seed:   npx tsx scripts/seed-sections.ts --from-file {sections_file}")
+    print(f"\nDone. Output: {sections_file}")
 
 
 if __name__ == "__main__":

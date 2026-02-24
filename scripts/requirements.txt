@@ -1,0 +1,9 @@
+# ingest-arxiv.py
+arxiv>=2.1.0
+pymupdf4llm>=0.0.5
+
+# ingest-youtube.py
+youtube-transcript-api>=1.0.0
+
+# pdf-extract.py
+marker-pdf>=1.0.0

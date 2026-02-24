@@ -9,7 +9,7 @@ Requirements:
   pip install marker-pdf
 
 Example:
-  python scripts/pdf-extract.py ~/Books/ddia.pdf --output-dir scripts/output
+  python scripts/pdf-extract.py ~/Books/my-book.pdf --output-dir scripts/output
 """
 
 import argparse
@@ -35,7 +35,7 @@ def extract_pdf(pdf_path: str, output_dir: str) -> Path:
         "marker_single",
         str(pdf),
         str(out),
-        "--max_pages", "50",  # DDIA Ch1 is ~30 pages
+        "--max_pages", "50",
     ]
 
     try:
@@ -130,7 +130,7 @@ def main():
         extract_chapter(md_files[0], args.chapter, args.output_dir)
     else:
         md_path = extract_pdf(args.pdf_path, args.output_dir)
-        print(f"\nNext: python scripts/concept-segment.py {md_path} --chapter 1")
+        print(f"\nExtracted: {md_path}")
 
 
 if __name__ == "__main__":

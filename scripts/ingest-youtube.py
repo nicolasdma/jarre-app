@@ -486,7 +486,7 @@ def main() -> None:
     total_output_words = sum(s["word_count"] for s in output)
     print(f"\nSaved to {output_file}")
     print(f"Total: {total_output_words} words across {len(output)} sections")
-    print(f"Next: python scripts/translate-chapter.py {output_file}")
+    print(f"Done. Output: {output_file}")
 
 
 if __name__ == "__main__":
