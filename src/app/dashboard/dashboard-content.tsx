@@ -92,6 +92,13 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
       }
 
       const data = await res.json();
+
+      if (data.alreadyExists) {
+        setResourceId(data.resourceId);
+        setStatus('completed');
+        return;
+      }
+
       setJobId(data.jobId);
       setStatus('polling');
     } catch {

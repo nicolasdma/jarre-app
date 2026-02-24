@@ -13,6 +13,7 @@ import { jsonOk } from '@/lib/api/errors';
 import { startPipeline } from '@/lib/pipeline/orchestrator';
 import { extractYouTubeVideoId } from '@/lib/pipeline/stages/resolve-youtube';
 import { getUserLanguage } from '@/lib/db/queries/user';
+import { TABLES } from '@/lib/db/tables';
 
 export const POST = withAuth(async (request, { supabase, user }) => {
   const body = await request.json();
@@ -26,6 +27,18 @@ export const POST = withAuth(async (request, { supabase, user }) => {
   const videoId = extractYouTubeVideoId(url);
   if (!videoId) {
     throw badRequest('Invalid YouTube URL. Supported formats: youtube.com/watch?v=... or youtu.be/...');
+  }
+
+  // Skip pipeline if this video was already processed
+  const resourceId = `yt-${videoId}`;
+  const { data: existing } = await supabase
+    .from(TABLES.resources)
+    .select('id')
+    .eq('id', resourceId)
+    .single();
+
+  if (existing) {
+    return jsonOk({ resourceId, status: 'completed', alreadyExists: true });
   }
 
   // Get user's preferred language
