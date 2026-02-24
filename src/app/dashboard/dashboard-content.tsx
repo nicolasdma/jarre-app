@@ -3,13 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowUp, BookOpen, Sparkles } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 import type { Language } from '@/lib/translations';
 import { t } from '@/lib/translations';
 import { CornerBrackets } from '@/components/ui/corner-brackets';
-import { CurriculumForm } from '@/components/curriculum-form';
 import { PipelineCourseCard, type PipelineCourseData } from './pipeline-course-card';
-import type { CurriculumSummary } from './page';
 
 const STAGE_LABELS: Record<string, Record<string, string>> = {
   es: {
@@ -41,15 +39,15 @@ interface DashboardStats {
 
 interface DashboardContentProps {
   courses: PipelineCourseData[];
-  curricula: CurriculumSummary[];
+  // TODO: Re-enable when curriculum feature is ready
+  // curricula: CurriculumSummary[];
   language: Language;
   stats: DashboardStats;
 }
 
-export function DashboardContent({ courses, curricula, language, stats }: DashboardContentProps) {
+export function DashboardContent({ courses, language, stats }: DashboardContentProps) {
   const router = useRouter();
   const [url, setUrl] = useState('');
-  const [showCurriculumForm, setShowCurriculumForm] = useState(false);
 
   // Pipeline state
   const [status, setStatus] = useState<PipelineStatus>('idle');
@@ -58,6 +56,7 @@ export function DashboardContent({ courses, curricula, language, stats }: Dashbo
   const [stagesCompleted, setStagesCompleted] = useState(0);
   const [totalStages, setTotalStages] = useState(6);
   const [error, setError] = useState<string | null>(null);
+  const [needsAuth, setNeedsAuth] = useState(false);
   const [resourceId, setResourceId] = useState<string | null>(null);
 
   const isProcessing = status === 'submitting' || status === 'polling';
@@ -70,6 +69,7 @@ export function DashboardContent({ courses, curricula, language, stats }: Dashbo
 
     setStatus('submitting');
     setError(null);
+    setNeedsAuth(false);
 
     try {
       const res = await fetch('/api/pipeline', {
@@ -77,6 +77,12 @@ export function DashboardContent({ courses, curricula, language, stats }: Dashbo
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: trimmed }),
       });
+
+      if (res.status === 401) {
+        setNeedsAuth(true);
+        setStatus('failed');
+        return;
+      }
 
       if (!res.ok) {
         const data = await res.json();
@@ -136,6 +142,7 @@ export function DashboardContent({ courses, curricula, language, stats }: Dashbo
     setStatus('idle');
     setJobId(null);
     setError(null);
+    setNeedsAuth(false);
     setUrl('');
     setStagesCompleted(0);
     setCurrentStage(null);
@@ -197,8 +204,23 @@ export function DashboardContent({ courses, curricula, language, stats }: Dashbo
           </div>
         )}
 
+        {/* Auth required */}
+        {status === 'failed' && needsAuth && (
+          <div className="mt-4 px-2 flex items-center gap-3">
+            <p className="text-sm text-j-text-secondary flex-1">
+              {language === 'es'
+                ? 'Inicia sesión para generar cursos.'
+                : 'Log in to generate courses.'}
+              {' '}
+              <Link href="/login" className="text-j-accent hover:underline">
+                {language === 'es' ? 'Iniciar sesión' : 'Log in'}
+              </Link>
+            </p>
+          </div>
+        )}
+
         {/* Error */}
-        {status === 'failed' && error && (
+        {status === 'failed' && !needsAuth && error && (
           <div className="mt-4 px-2 flex items-center gap-3">
             <p className="text-sm text-j-error flex-1">{error}</p>
             <button
@@ -219,7 +241,7 @@ export function DashboardContent({ courses, curricula, language, stats }: Dashbo
           </div>
         )}
 
-        {/* Curriculum CTA */}
+        {/* TODO: Curriculum CTA — re-enable when curriculum feature is ready
         {!isProcessing && status !== 'completed' && (
           <div className="mt-4 px-2">
             <button
@@ -233,15 +255,17 @@ export function DashboardContent({ courses, curricula, language, stats }: Dashbo
             </button>
           </div>
         )}
+        */}
       </div>
 
-      {/* Curriculum Form Modal */}
+      {/* TODO: Curriculum Form Modal — re-enable when curriculum feature is ready
       {showCurriculumForm && (
         <CurriculumForm
           language={language}
           onClose={() => setShowCurriculumForm(false)}
         />
       )}
+      */}
 
       {/* TODO: Revisit stats cards design
       {stats.totalCourses > 0 && (
@@ -280,7 +304,7 @@ export function DashboardContent({ courses, curricula, language, stats }: Dashbo
       )}
       */}
 
-      {/* Curricula section */}
+      {/* TODO: Curricula section — re-enable when curriculum feature is ready
       {curricula.length > 0 && (
         <>
           <h2 className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mb-6">
@@ -317,11 +341,12 @@ export function DashboardContent({ courses, curricula, language, stats }: Dashbo
           </div>
         </>
       )}
+      */}
 
       {/* Section header */}
       {courses.length > 0 && (
         <h2 className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mb-6">
-          {language === 'es' ? 'Mis Cursos' : 'My Courses'}
+          {language === 'es' ? 'Cursos' : 'Courses'}
           <span className="ml-2 text-j-text-secondary">({courses.length})</span>
         </h2>
       )}

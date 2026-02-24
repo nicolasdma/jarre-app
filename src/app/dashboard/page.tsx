@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { TABLES } from '@/lib/db/tables';
 import { Header } from '@/components/header';
@@ -30,38 +29,36 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect('/login');
+  let lang: Language = 'es';
+  let sectionCounts: Record<string, number> = {};
+  let evalStats: Record<string, { bestScore: number; evalCount: number }> = {};
 
-  // Fetch user profile
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('language, streak_days, total_xp, xp_level')
-    .eq('id', user.id)
-    .single();
+  if (user) {
+    // Fetch user profile (personal data — requires auth)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('language')
+      .eq('id', user.id)
+      .single();
 
-  const lang = (profile?.language || 'es') as Language;
-  const streakDays = profile?.streak_days ?? 0;
-  const totalXp = profile?.total_xp ?? 0;
-  const xpLevel = profile?.xp_level ?? 1;
+    lang = (profile?.language || 'es') as Language;
+  }
 
-  // Fetch pipeline resources created by this user
+  // Fetch pipeline-generated resources (video/lecture types)
   const { data: resources } = await supabase
     .from('resources')
     .select('id, title, type, url, activate_data, created_at')
-    .eq('created_by', user.id)
-    .order('created_at', { ascending: false });
+    .in('type', ['video', 'lecture']);
 
-  const pipelineResources = resources || [];
+  const allResources = resources || [];
+  const allResourceIds = allResources.map((r) => r.id);
 
-  // Fetch section counts per resource
-  const resourceIds = pipelineResources.map((r) => r.id);
-  let sectionCounts: Record<string, number> = {};
-
-  if (resourceIds.length > 0) {
+  // Fetch section counts for all candidates
+  if (allResourceIds.length > 0) {
     const { data: sections } = await supabase
       .from('resource_sections')
       .select('resource_id')
-      .in('resource_id', resourceIds);
+      .in('resource_id', allResourceIds);
 
     if (sections) {
       for (const s of sections) {
@@ -70,11 +67,17 @@ export default async function DashboardPage() {
     }
   }
 
-  // Fetch evaluation stats per resource
-  type EvalStats = { bestScore: number; evalCount: number };
-  let evalStats: Record<string, EvalStats> = {};
+  // Keep only resources with at least 1 section, shuffle, take max 9
+  const withSections = allResources.filter((r) => (sectionCounts[r.id] || 0) > 0);
+  for (let i = withSections.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [withSections[i], withSections[j]] = [withSections[j], withSections[i]];
+  }
+  const pipelineResources = withSections.slice(0, 6);
+  const resourceIds = pipelineResources.map((r) => r.id);
 
-  if (resourceIds.length > 0) {
+  // Fetch evaluation stats per resource (personal — requires auth)
+  if (user && resourceIds.length > 0) {
     const { data: evaluations } = await supabase
       .from('evaluations')
       .select('resource_id, overall_score')
@@ -98,7 +101,7 @@ export default async function DashboardPage() {
     }
   }
 
-  // Build course data for client component
+  // Build course data
   const courses: PipelineCourseData[] = pipelineResources.map((r) => ({
     id: r.id,
     title: r.title,
@@ -109,57 +112,6 @@ export default async function DashboardPage() {
     createdAt: r.created_at,
     evalStats: evalStats[r.id] || null,
   }));
-
-  // Fetch user's curricula
-  const { data: rawCurricula } = await supabase
-    .from(TABLES.curricula)
-    .select('id, title, topic, status, created_at')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .order('created_at', { ascending: false });
-
-  let curricula: CurriculumSummary[] = [];
-
-  if (rawCurricula && rawCurricula.length > 0) {
-    const curriculumIds = rawCurricula.map((c) => c.id);
-
-    // Fetch phase counts
-    const { data: phases } = await supabase
-      .from(TABLES.curriculumPhases)
-      .select('curriculum_id')
-      .in('curriculum_id', curriculumIds);
-
-    const phaseCounts: Record<string, number> = {};
-    for (const p of phases || []) {
-      phaseCounts[p.curriculum_id] = (phaseCounts[p.curriculum_id] || 0) + 1;
-    }
-
-    // Fetch resource counts + materialized counts
-    const { data: curResources } = await supabase
-      .from(TABLES.curriculumResources)
-      .select('curriculum_id, status')
-      .in('curriculum_id', curriculumIds);
-
-    const resourceCounts: Record<string, number> = {};
-    const materializedCounts: Record<string, number> = {};
-    for (const r of curResources || []) {
-      resourceCounts[r.curriculum_id] = (resourceCounts[r.curriculum_id] || 0) + 1;
-      if (r.status === 'materialized') {
-        materializedCounts[r.curriculum_id] = (materializedCounts[r.curriculum_id] || 0) + 1;
-      }
-    }
-
-    curricula = rawCurricula.map((c) => ({
-      id: c.id,
-      title: c.title,
-      topic: c.topic,
-      status: c.status,
-      createdAt: c.created_at,
-      phaseCount: phaseCounts[c.id] || 0,
-      resourceCount: resourceCounts[c.id] || 0,
-      materializedCount: materializedCounts[c.id] || 0,
-    }));
-  }
 
   // Compute compact stats
   const totalCourses = courses.length;
@@ -193,7 +145,6 @@ export default async function DashboardPage() {
         {/* Input + Stats + Course Grid */}
         <DashboardContent
           courses={courses}
-          curricula={curricula}
           language={lang}
           stats={{ totalCourses, totalSections, evaluatedCount, avgScore }}
         />
