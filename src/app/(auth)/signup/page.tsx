@@ -27,12 +27,16 @@ export default function SignupPage() {
 
     const supabase = createClient();
 
+    const browserLang = navigator.language?.split('-')[0];
+    const detectedLanguage = ['es', 'en'].includes(browserLang) ? browserLang : 'es';
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           display_name: displayName,
+          language: detectedLanguage,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },

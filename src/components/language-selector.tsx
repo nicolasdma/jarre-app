@@ -5,32 +5,27 @@ import { useRouter } from 'next/navigation';
 
 type Language = 'es' | 'en';
 
-const languages: { value: Language; label: string; flag: string }[] = [
-  { value: 'es', label: 'Español', flag: '🇪🇸' },
-  { value: 'en', label: 'English', flag: '🇬🇧' },
-];
-
 export function LanguageSelector({ currentLanguage }: { currentLanguage: Language }) {
   const [language, setLanguage] = useState<Language>(currentLanguage);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleChange = async (newLanguage: Language) => {
-    if (newLanguage === language) return;
+  const nextLanguage: Language = language === 'es' ? 'en' : 'es';
 
+  const handleToggle = async () => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/user/language', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language: newLanguage }),
+        body: JSON.stringify({ language: nextLanguage }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to update language');
       }
 
-      setLanguage(newLanguage);
+      setLanguage(nextLanguage);
       router.refresh();
     } catch (error) {
       console.error('Error updating language:', error);
@@ -40,24 +35,15 @@ export function LanguageSelector({ currentLanguage }: { currentLanguage: Languag
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-j-text-secondary">Language:</span>
-      <div className="flex gap-1">
-        {languages.map((lang) => (
-          <button
-            key={lang.value}
-            onClick={() => handleChange(lang.value)}
-            disabled={isLoading}
-            className={`rounded-md px-3 py-2 text-sm font-medium transition-colors min-h-[44px] ${
-              language === lang.value
-                ? 'bg-j-accent text-j-text-on-accent'
-                : 'bg-j-bg-alt text-j-text-secondary hover:bg-j-bg-hover border border-j-border'
-            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {lang.flag} {lang.label}
-          </button>
-        ))}
-      </div>
-    </div>
+    <button
+      onClick={handleToggle}
+      disabled={isLoading}
+      aria-label={`Switch language to ${nextLanguage === 'es' ? 'Español' : 'English'}`}
+      className={`font-mono text-[11px] tracking-[0.15em] uppercase text-j-text-secondary hover:text-j-text transition-colors ${
+        isLoading ? 'opacity-50 cursor-not-allowed' : ''
+      }`}
+    >
+      {language.toUpperCase()}
+    </button>
   );
 }
