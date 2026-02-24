@@ -28,7 +28,8 @@ const log = createLogger('GeminiLive');
 
 interface GeminiLiveConfig {
   model: string;
-  systemInstruction: string;
+  /** Optional when using ephemeral tokens with liveConnectConstraints (instruction locked in token) */
+  systemInstruction?: string;
   voiceName?: string;
   resumptionHandle?: string;
   tools?: Tool[];
@@ -128,9 +129,9 @@ export function createGeminiLiveClient(callbacks: GeminiLiveCallbacks) {
                 },
               },
             },
-            systemInstruction: {
-              parts: [{ text: config.systemInstruction }],
-            },
+            ...(config.systemInstruction ? {
+              systemInstruction: { parts: [{ text: config.systemInstruction }] },
+            } : {}),
             ...(config.tools ? { tools: config.tools } : {}),
             inputAudioTranscription: {},
             outputAudioTranscription: {},

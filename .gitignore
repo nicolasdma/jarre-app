@@ -53,3 +53,8 @@ supabase/.temp/
 /engine/data/*
 !/engine/data/.gitkeep
 scripts/__pycache__/
+
+# development artifacts (private session plans, backlog, investigations)
+plan/
+BACKLOG.md
+investigation/

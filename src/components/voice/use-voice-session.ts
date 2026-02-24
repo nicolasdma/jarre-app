@@ -143,8 +143,10 @@ export function useVoiceSession({
   // Pre-compressed summary from onGoAway — avoids waiting for API during reconnect
   const compressedSummaryRef = useRef<string | null>(null);
 
-  // Pre-fetch refs
-  const prefetchedTokenRef = useRef<string | null>(null);
+  // Stores the built system instruction for reconnect token requests
+  const builtInstructionRef = useRef<string | null>(null);
+
+  // Pre-fetch refs (context only — token requires instruction, fetched during connect)
   const prefetchedContextRef = useRef<{ summary?: string; learnerMemory?: LearnerConceptMemory[] } | null>(null);
   const prefetchSectionIdRef = useRef<string | null>(null);
 
@@ -156,51 +158,54 @@ export function useVoiceSession({
   const onSessionCompleteRef = useRef(onSessionComplete);
   onSessionCompleteRef.current = onSessionComplete;
 
-  // ---- Pre-fetch token + context on mount / sectionId change ----
+  // ---- Pre-fetch context + token helper ----
 
-  const prefetchTokenAndContext = useCallback(async () => {
+  /** Fetch an ephemeral voice token (requires the built system instruction) */
+  const fetchVoiceToken = useCallback(async (instruction: string): Promise<string> => {
+    const res = await fetch('/api/voice/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ systemInstruction: instruction }),
+    });
+    if (!res.ok) throw new Error('Failed to get voice token');
+    const { token } = await res.json();
+    return token;
+  }, []);
+
+  const prefetchContext = useCallback(async () => {
     // Invalidate previous pre-fetch if section changed
-    prefetchedTokenRef.current = null;
     prefetchedContextRef.current = null;
     prefetchSectionIdRef.current = sectionId;
 
     const currentSectionId = sectionId;
 
     // For evaluation sessions, skip context fetching (no section memory needed)
+    if (sessionType === 'evaluation') return;
+
     const contextUrl = new URL('/api/voice/session/context', window.location.origin);
     contextUrl.searchParams.set('sectionId', currentSectionId);
     if (conceptIds?.length) {
       contextUrl.searchParams.set('conceptIds', conceptIds.join(','));
     }
 
-    const contextFetch = sessionType === 'evaluation'
-      ? Promise.resolve(null)
-      : fetch(contextUrl.toString())
-          .then((r) => (r.ok ? r.json() : null))
-          .catch(() => null);
-
-    const [tokenData, contextData] = await Promise.all([
-      fetch('/api/voice/token', { method: 'POST' })
-        .then((r) => (r.ok ? r.json() : null))
-        .catch(() => null),
-      contextFetch,
-    ]);
+    const contextData = await fetch(contextUrl.toString())
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
 
     // Only store if sectionId hasn't changed while fetching
     if (prefetchSectionIdRef.current !== currentSectionId) return;
-    if (tokenData?.token) prefetchedTokenRef.current = tokenData.token;
     if (contextData) prefetchedContextRef.current = contextData;
   }, [sectionId, sessionType, conceptIds]);
 
   // Skip prefetch when systemInstructionOverride is provided — the caller
   // (e.g. useUnifiedVoiceSession) manages its own context fetching and will
   // call connect() with the instruction already built. Prefetching here would
-  // cause duplicate token/context requests and 400 errors from empty sectionId.
+  // cause duplicate context requests and 400 errors from empty sectionId.
   useEffect(() => {
     if (!systemInstructionOverride) {
-      prefetchTokenAndContext();
+      prefetchContext();
     }
-  }, [prefetchTokenAndContext, systemInstructionOverride]);
+  }, [prefetchContext, systemInstructionOverride]);
 
   // ---- Playback: schedule PCM audio chunks on AudioContext ----
 
@@ -499,24 +504,13 @@ export function useVoiceSession({
     try {
       const { sectionId: secId, sectionContent: sc, sectionTitle: st, language: lang, systemInstructionOverride: sysOverride, sessionType: sessType, resourceId: resId, initialMessage: initMsg, conceptIds: cIds } = paramsRef.current;
 
-      // Use pre-fetched token if available, otherwise fetch fresh
-      const tokenPromise = prefetchedTokenRef.current
-        ? Promise.resolve(prefetchedTokenRef.current)
-        : fetch('/api/voice/token', { method: 'POST' })
-            .then((r) => {
-              if (!r.ok) throw new Error('Failed to get voice token');
-              return r.json();
-            })
-            .then((d) => d.token as string);
-
-      // Use pre-fetched context if available, otherwise fetch fresh.
+      // 1. Resolve context (use pre-fetched if available)
       // When systemInstructionOverride is set, the caller already built the prompt
       // with its own context — skip fetching here to avoid duplicate requests.
-      const contextPromise: Promise<{ summary?: string; learnerMemory?: LearnerConceptMemory[] }> = sysOverride
-        ? Promise.resolve({})
+      const context: { summary?: string; learnerMemory?: LearnerConceptMemory[] } = sysOverride
+        ? {}
         : prefetchedContextRef.current
-          ? Promise.resolve(prefetchedContextRef.current)
-          : (() => {
+          ?? await (async () => {
               const ctxUrl = new URL('/api/voice/session/context', window.location.origin);
               ctxUrl.searchParams.set('sectionId', secId);
               if (cIds?.length) ctxUrl.searchParams.set('conceptIds', cIds.join(','));
@@ -525,37 +519,8 @@ export function useVoiceSession({
                 .catch(() => ({}));
             })();
 
-      // Start session (always fresh) + resolve token/context in parallel
-      const startBody: Record<string, unknown> = { sessionType: sessType };
-      // Route sectionId to the correct API field based on session type
-      if (secId) {
-        if (sessType === 'teaching') startBody.sectionId = secId;
-        else if (sessType === 'exploration') startBody.userResourceId = secId;
-      }
-      if (resId) startBody.resourceId = resId;
-
-      const [sessionRes, token, context] = await Promise.all([
-        fetch('/api/voice/session/start', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(startBody),
-        }),
-        tokenPromise,
-        contextPromise,
-      ]);
-
       // Consume pre-fetched data (one-time use)
-      prefetchedTokenRef.current = null;
       prefetchedContextRef.current = null;
-
-      // Session ID is required — without it transcripts can't be saved and scoring is impossible
-      if (!sessionRes.ok) {
-        const errData = await sessionRes.json().catch(() => ({}));
-        throw new Error(errData.error || 'Failed to start voice session');
-      }
-      const { sessionId: sid } = await sessionRes.json();
-      sessionIdRef.current = sid;
-      setSessionId(sid);
 
       const summary = context?.summary;
       const learnerMemory: LearnerConceptMemory[] = context?.learnerMemory || [];
@@ -589,7 +554,36 @@ export function useVoiceSession({
         }
       }
 
-      // 3. Create Gemini Live client
+      // Store instruction for reconnect token requests
+      builtInstructionRef.current = systemInstruction;
+
+      // 3. Fetch ephemeral token + start session in parallel
+      const startBody: Record<string, unknown> = { sessionType: sessType };
+      if (secId) {
+        if (sessType === 'teaching') startBody.sectionId = secId;
+        else if (sessType === 'exploration') startBody.userResourceId = secId;
+      }
+      if (resId) startBody.resourceId = resId;
+
+      const [token, sessionRes] = await Promise.all([
+        fetchVoiceToken(systemInstruction),
+        fetch('/api/voice/session/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(startBody),
+        }),
+      ]);
+
+      // Session ID is required — without it transcripts can't be saved and scoring is impossible
+      if (!sessionRes.ok) {
+        const errData = await sessionRes.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to start voice session');
+      }
+      const { sessionId: sid } = await sessionRes.json();
+      sessionIdRef.current = sid;
+      setSessionId(sid);
+
+      // 4. Create Gemini Live client
       const client = createGeminiLiveClient({
         onAudioResponse: (audioChunk) => {
           setTutorState((prev) => {
@@ -654,9 +648,8 @@ export function useVoiceSession({
           // Proactive reconnect before the WebSocket drops
           (async () => {
             try {
-              const res = await fetch('/api/voice/token', { method: 'POST' });
-              if (!res.ok) throw new Error('Failed to get token for proactive reconnect');
-              const { token: freshToken } = await res.json();
+              if (!builtInstructionRef.current) return;
+              const freshToken = await fetchVoiceToken(builtInstructionRef.current);
               const c = clientRef.current;
               if (!c) return;
               await c.reconnect(freshToken, handle);
@@ -679,10 +672,10 @@ export function useVoiceSession({
 
           reconnectTimerRef.current = setTimeout(async () => {
             try {
+              if (!builtInstructionRef.current) throw new Error('No instruction for reconnect token');
+
               // Fetch a fresh ephemeral token
-              const res = await fetch('/api/voice/token', { method: 'POST' });
-              if (!res.ok) throw new Error('Failed to get fresh token for reconnect');
-              const { token: freshToken } = await res.json();
+              const freshToken = await fetchVoiceToken(builtInstructionRef.current);
 
               const c = clientRef.current;
               if (!c) return;
@@ -701,9 +694,7 @@ export function useVoiceSession({
                   log.info('[Reconnect] Layer 1 failed (handle expired?), falling back to Layer 2:', layer1Err);
                   resumptionHandleRef.current = null;
                   // Need a fresh token since the previous one was consumed
-                  const res2 = await fetch('/api/voice/token', { method: 'POST' });
-                  if (!res2.ok) throw new Error('Failed to get token for Layer 2');
-                  const { token: freshToken2 } = await res2.json();
+                  const freshToken2 = await fetchVoiceToken(builtInstructionRef.current!);
                   await c.reconnect(freshToken2);
                   c.resetRetryCount();
                   // Send reconstructed context
@@ -745,20 +736,19 @@ export function useVoiceSession({
       });
       clientRef.current = client;
 
-      // 4. Connect WebSocket
+      // 5. Connect WebSocket (systemInstruction is locked in the ephemeral token)
       await client.connect(token, {
         model: MODEL,
-        systemInstruction,
         voiceName: VOICE_NAME,
         ...(paramsRef.current.tools ? { tools: paramsRef.current.tools } : {}),
       });
 
-      // 5. Start mic
+      // 6. Start mic
       await startMic(client);
       logTransition('listening', 'session_started');
       setTutorState('listening');
 
-      // 6. Send initial message — the model should jump straight to a question
+      // 7. Send initial message — the model should jump straight to a question
       const prompt = initMsg ?? (
         summary
           ? (lang === 'es'
@@ -770,7 +760,7 @@ export function useVoiceSession({
       );
       client.sendText(prompt);
 
-      // 7. Start session timer (display only — no auto-disconnect)
+      // 8. Start session timer (display only — no auto-disconnect)
       startTimer();
 
     } catch (err) {
@@ -780,7 +770,7 @@ export function useVoiceSession({
       setTutorState('idle');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playAudioChunk, stopPlayback, startMic, startTimer, saveTranscript, buildFallbackContext, logTransition]);
+  }, [playAudioChunk, stopPlayback, startMic, startTimer, saveTranscript, buildFallbackContext, logTransition, fetchVoiceToken]);
 
   // ---- Disconnect ----
 
@@ -811,6 +801,7 @@ export function useVoiceSession({
     }
     // Reset resilience refs
     resumptionHandleRef.current = null;
+    builtInstructionRef.current = null;
     transcriptBufferRef.current = [];
     sessionEndDetectedRef.current = false;
     if (endKeywordTimerRef.current) {
