@@ -32,6 +32,12 @@ import { HoraceHeGpu } from './horace-he-gpu';
 import { READING_QUESTIONS } from './reading-questions';
 import { LearnFlow } from '@/components/learn-flow';
 import { FIGURE_REGISTRY } from '@/lib/figure-registry';
+import {
+  getTranslatedSections,
+  getTranslatedActivateData,
+  getTranslatedQuizzes,
+} from '@/lib/translation/translate-service';
+import type { ActivateData } from '@/lib/pipeline/types';
 import type { Language } from '@/lib/translations';
 import type { LearnProgress } from '@/lib/learn-progress';
 import type { InlineQuiz, VideoSegment } from '@/types';
@@ -154,38 +160,75 @@ export default async function LearnPage({ params }: PageProps) {
 
   // NEW FLOW: If resource has sections in DB, use the ACTIVATE → LEARN → APPLY → EVALUATE sequence
   if (sections.length > 0) {
+    const resourceLang = (resource.language as string) || language;
+    const needsTranslation = resourceLang !== language;
+
     const sectionIds = sections.map((s) => s.id);
+    const defaultSections = sections.map((s) => ({
+      id: s.id,
+      conceptId: s.concept_id,
+      sectionTitle: s.section_title,
+      contentMarkdown: s.content_markdown,
+      sortOrder: s.sort_order,
+    }));
 
-    // Fetch inline quizzes for all sections in this resource
-    const { data: quizzesRaw } = await supabase
-      .from('inline_quizzes')
-      .select('*')
-      .in('section_id', sectionIds)
-      .eq('is_active', true)
-      .order('sort_order');
+    // Fetch quizzes, video segments, and run translations — all in parallel
+    const [quizzesResult, videoSegmentsResult, flowSections, translatedActivateData] = await Promise.all([
+      supabase
+        .from('inline_quizzes')
+        .select('*')
+        .in('section_id', sectionIds)
+        .eq('is_active', true)
+        .order('sort_order'),
+      supabase
+        .from('video_segments')
+        .select('*')
+        .in('section_id', sectionIds)
+        .order('sort_order'),
+      needsTranslation
+        ? getTranslatedSections(resourceId, resourceLang, language, user.id)
+        : Promise.resolve(defaultSections),
+      needsTranslation
+        ? getTranslatedActivateData(resourceId, resource.activate_data as ActivateData | null, resourceLang, language, user.id)
+        : Promise.resolve(resource.activate_data),
+    ]);
 
-    // Fetch video segments for all sections in this resource
-    const { data: videoSegmentsRaw } = await supabase
-      .from('video_segments')
-      .select('*')
-      .in('section_id', sectionIds)
-      .order('sort_order');
+    const quizzesRaw = quizzesResult.data;
+    const videoSegmentsRaw = videoSegmentsResult.data;
+
+    // Translate quizzes (needs quizzesRaw, so runs after the parallel batch)
+    const translatedQuizMap = needsTranslation && quizzesRaw && quizzesRaw.length > 0
+      ? await getTranslatedQuizzes(
+          quizzesRaw.map((q) => ({
+            id: q.id,
+            section_id: q.section_id,
+            question_text: q.question_text,
+            options: q.options,
+            explanation: q.explanation,
+            justification_hint: q.justification_hint,
+          })),
+          resourceLang,
+          language,
+          user.id,
+        )
+      : null;
 
     // Group quizzes by section_id
     const quizzesBySectionId: Record<string, InlineQuiz[]> = {};
     if (quizzesRaw) {
       for (const q of quizzesRaw) {
+        const translated = translatedQuizMap?.get(q.id);
         const quiz: InlineQuiz = {
           id: q.id,
           sectionId: q.section_id,
           positionAfterHeading: q.position_after_heading,
           sortOrder: q.sort_order,
           format: q.format,
-          questionText: q.question_text,
-          options: q.options,
+          questionText: translated?.questionText ?? q.question_text,
+          options: translated?.options ?? q.options,
           correctAnswer: q.correct_answer,
-          explanation: q.explanation,
-          justificationHint: q.justification_hint ?? undefined,
+          explanation: translated?.explanation ?? q.explanation,
+          justificationHint: translated?.justificationHint ?? q.justification_hint ?? undefined,
         };
         const arr = quizzesBySectionId[q.section_id] ?? [];
         arr.push(quiz);
@@ -213,14 +256,6 @@ export default async function LearnPage({ params }: PageProps) {
       }
     }
 
-    const flowSections = sections.map((s) => ({
-      id: s.id,
-      conceptId: s.concept_id,
-      sectionTitle: s.section_title,
-      contentMarkdown: s.content_markdown,
-      sortOrder: s.sort_order,
-    }));
-
     return (
       <LearnFlow
         language={language}
@@ -228,7 +263,7 @@ export default async function LearnPage({ params }: PageProps) {
         resourceTitle={resource.title}
         resourceType={resource.type}
         sections={flowSections}
-        activateComponent={renderContent?.() ?? (resource.activate_data ? <GenericActivate data={resource.activate_data} title={resource.title} /> : undefined)}
+        activateComponent={renderContent?.() ?? (translatedActivateData ? <GenericActivate data={translatedActivateData} title={resource.title} /> : undefined)}
         playgroundHref={practical?.href}
         playgroundLabel={practical?.label}
         concepts={conceptsTaught}

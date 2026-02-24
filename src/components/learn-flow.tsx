@@ -37,6 +37,7 @@ interface Section {
   sectionTitle: string;
   contentMarkdown: string;
   sortOrder: number;
+  pendingTranslation?: boolean;
 }
 
 type Step = 'activate' | 'learn' | 'practice-eval' | 'apply' | 'evaluate';
