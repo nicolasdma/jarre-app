@@ -116,7 +116,6 @@ jarre/
 │   └── types/         # TypeScript types
 ├── supabase/
 │   └── migrations/    # Database migrations
-├── CLAUDE.md          # AI assistant rules
 └── README.md          # This file
 ```
 

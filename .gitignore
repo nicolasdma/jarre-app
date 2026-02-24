@@ -57,6 +57,7 @@ scripts/__pycache__/
 # development artifacts (private session plans, backlog, investigations)
 plan/
 BACKLOG.md
+CLAUDE.md
 investigation/
 investigations/
 backlog/
