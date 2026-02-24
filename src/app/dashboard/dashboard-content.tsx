@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowUp } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowUp, BookOpen, Sparkles } from 'lucide-react';
 import type { Language } from '@/lib/translations';
 import { t } from '@/lib/translations';
 import { CornerBrackets } from '@/components/ui/corner-brackets';
+import { CurriculumForm } from '@/components/curriculum-form';
 import { PipelineCourseCard, type PipelineCourseData } from './pipeline-course-card';
+import type { CurriculumSummary } from './page';
 
 const STAGE_LABELS: Record<string, Record<string, string>> = {
   es: {
@@ -38,13 +41,15 @@ interface DashboardStats {
 
 interface DashboardContentProps {
   courses: PipelineCourseData[];
+  curricula: CurriculumSummary[];
   language: Language;
   stats: DashboardStats;
 }
 
-export function DashboardContent({ courses, language, stats }: DashboardContentProps) {
+export function DashboardContent({ courses, curricula, language, stats }: DashboardContentProps) {
   const router = useRouter();
   const [url, setUrl] = useState('');
+  const [showCurriculumForm, setShowCurriculumForm] = useState(false);
 
   // Pipeline state
   const [status, setStatus] = useState<PipelineStatus>('idle');
@@ -213,7 +218,30 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
             </p>
           </div>
         )}
+
+        {/* Curriculum CTA */}
+        {!isProcessing && status !== 'completed' && (
+          <div className="mt-4 px-2">
+            <button
+              onClick={() => setShowCurriculumForm(true)}
+              className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.15em] text-j-text-tertiary hover:text-j-accent transition-colors"
+            >
+              <Sparkles size={14} />
+              {language === 'es'
+                ? 'O genera un curriculum completo con IA'
+                : 'Or generate a full AI curriculum'}
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Curriculum Form Modal */}
+      {showCurriculumForm && (
+        <CurriculumForm
+          language={language}
+          onClose={() => setShowCurriculumForm(false)}
+        />
+      )}
 
       {/* TODO: Revisit stats cards design
       {stats.totalCourses > 0 && (
@@ -251,6 +279,44 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
         </div>
       )}
       */}
+
+      {/* Curricula section */}
+      {curricula.length > 0 && (
+        <>
+          <h2 className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mb-6">
+            {language === 'es' ? 'Mis Currículas' : 'My Curricula'}
+            <span className="ml-2 text-j-text-secondary">({curricula.length})</span>
+          </h2>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-12">
+            {curricula.map((c) => (
+              <Link
+                key={c.id}
+                href={`/curriculum/${c.id}`}
+                className="group relative border border-j-border p-5 hover:border-j-accent transition-colors"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <BookOpen size={16} className="text-j-accent mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-medium text-j-text group-hover:text-j-accent transition-colors truncate">
+                      {c.title}
+                    </h3>
+                    <p className="text-[11px] text-j-text-tertiary mt-0.5 truncate">{c.topic}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 font-mono text-[10px] text-j-text-tertiary">
+                  <span>{c.phaseCount} {language === 'es' ? 'fases' : 'phases'}</span>
+                  <span>{c.resourceCount} {language === 'es' ? 'recursos' : 'resources'}</span>
+                  {c.materializedCount > 0 && (
+                    <span className="text-j-accent">{c.materializedCount} {language === 'es' ? 'listos' : 'ready'}</span>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Section header */}
       {courses.length > 0 && (

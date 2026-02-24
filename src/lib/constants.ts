@@ -168,6 +168,8 @@ export const TOKEN_BUDGETS = {
   PIPELINE_QUIZZES: 2000,
   PIPELINE_ACTIVATE: 1500,
   PIPELINE_LANGUAGE_DETECT: 100,
+  // Curriculum
+  CURRICULUM_GENERATE: 4000,
 } as const;
 
 // ============================================================================

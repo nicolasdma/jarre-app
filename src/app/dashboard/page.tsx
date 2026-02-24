@@ -1,11 +1,23 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { TABLES } from '@/lib/db/tables';
 import { Header } from '@/components/header';
 import { SectionLabel } from '@/components/ui/section-label';
 import type { Language } from '@/lib/translations';
 import { DashboardContent } from './dashboard-content';
 import type { PipelineCourseData } from './pipeline-course-card';
+
+export interface CurriculumSummary {
+  id: string;
+  title: string;
+  topic: string;
+  status: string;
+  createdAt: string;
+  phaseCount: number;
+  resourceCount: number;
+  materializedCount: number;
+}
 
 export const metadata: Metadata = {
   title: 'Dashboard — Jarre',
@@ -98,6 +110,57 @@ export default async function DashboardPage() {
     evalStats: evalStats[r.id] || null,
   }));
 
+  // Fetch user's curricula
+  const { data: rawCurricula } = await supabase
+    .from(TABLES.curricula)
+    .select('id, title, topic, status, created_at')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+
+  let curricula: CurriculumSummary[] = [];
+
+  if (rawCurricula && rawCurricula.length > 0) {
+    const curriculumIds = rawCurricula.map((c) => c.id);
+
+    // Fetch phase counts
+    const { data: phases } = await supabase
+      .from(TABLES.curriculumPhases)
+      .select('curriculum_id')
+      .in('curriculum_id', curriculumIds);
+
+    const phaseCounts: Record<string, number> = {};
+    for (const p of phases || []) {
+      phaseCounts[p.curriculum_id] = (phaseCounts[p.curriculum_id] || 0) + 1;
+    }
+
+    // Fetch resource counts + materialized counts
+    const { data: curResources } = await supabase
+      .from(TABLES.curriculumResources)
+      .select('curriculum_id, status')
+      .in('curriculum_id', curriculumIds);
+
+    const resourceCounts: Record<string, number> = {};
+    const materializedCounts: Record<string, number> = {};
+    for (const r of curResources || []) {
+      resourceCounts[r.curriculum_id] = (resourceCounts[r.curriculum_id] || 0) + 1;
+      if (r.status === 'materialized') {
+        materializedCounts[r.curriculum_id] = (materializedCounts[r.curriculum_id] || 0) + 1;
+      }
+    }
+
+    curricula = rawCurricula.map((c) => ({
+      id: c.id,
+      title: c.title,
+      topic: c.topic,
+      status: c.status,
+      createdAt: c.created_at,
+      phaseCount: phaseCounts[c.id] || 0,
+      resourceCount: resourceCounts[c.id] || 0,
+      materializedCount: materializedCounts[c.id] || 0,
+    }));
+  }
+
   // Compute compact stats
   const totalCourses = courses.length;
   const totalSections = Object.values(sectionCounts).reduce((a, b) => a + b, 0);
@@ -130,6 +193,7 @@ export default async function DashboardPage() {
         {/* Input + Stats + Course Grid */}
         <DashboardContent
           courses={courses}
+          curricula={curricula}
           language={lang}
           stats={{ totalCourses, totalSections, evaluatedCount, avgScore }}
         />

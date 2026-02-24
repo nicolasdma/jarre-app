@@ -15,6 +15,7 @@ export interface PipelineConfig {
   url: string;
   title?: string;
   targetLanguage: string;
+  curriculumResourceId?: string;
 }
 
 export type PipelineStage =

@@ -44,4 +44,12 @@ export const TABLES = {
   userResourceConcepts: 'user_resource_concepts',
   consumptionLog: 'consumption_log',
   insightSuggestions: 'insight_suggestions',
+
+  // Pipeline
+  pipelineJobs: 'pipeline_jobs',
+
+  // Curriculum
+  curricula: 'curricula',
+  curriculumPhases: 'curriculum_phases',
+  curriculumResources: 'curriculum_resources',
 } as const;

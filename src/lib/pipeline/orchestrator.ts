@@ -75,6 +75,7 @@ export async function startPipeline(config: PipelineConfig): Promise<string> {
       language: config.targetLanguage,
       status: 'queued',
       total_stages: PIPELINE_TOTAL_STAGES,
+      curriculum_resource_id: config.curriculumResourceId || null,
     })
     .select('id')
     .single();
@@ -387,6 +388,22 @@ async function executePipeline(
         resource_id: data.write.resourceId,
         tokens_used: totalTokens,
       });
+
+      // Update curriculum resource if this was triggered from a curriculum
+      if (config.curriculumResourceId) {
+        const { error: curResErr } = await supabase
+          .from(TABLES.curriculumResources)
+          .update({
+            status: 'materialized',
+            resource_id: data.write.resourceId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', config.curriculumResourceId);
+
+        if (curResErr) {
+          log.error(`[${jobId}] Failed to update curriculum resource: ${curResErr.message}`);
+        }
+      }
     }
 
     // Log token usage (fire-and-forget)
@@ -424,5 +441,19 @@ async function executePipeline(
       failed_stage: STAGE_ORDER[stagesCompleted] || 'unknown',
       tokens_used: totalTokens,
     });
+
+    // Mark curriculum resource as failed if applicable
+    if (config.curriculumResourceId) {
+      await supabase
+        .from(TABLES.curriculumResources)
+        .update({
+          status: 'failed',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', config.curriculumResourceId)
+        .then(({ error: e }) => {
+          if (e) log.error(`[${jobId}] Failed to mark curriculum resource as failed: ${e.message}`);
+        });
+    }
   }
 }
