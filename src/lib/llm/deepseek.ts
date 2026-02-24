@@ -6,6 +6,9 @@
  */
 
 import { z } from 'zod';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('DeepSeek');
 
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const DEFAULT_MODEL = 'deepseek-chat'; // DeepSeek V3
@@ -120,7 +123,7 @@ export function parseJsonResponse<T>(content: string, schema: z.ZodSchema<T>): T
     const parsed = JSON.parse(jsonStr);
     return schema.parse(parsed);
   } catch (error) {
-    console.error('Failed to parse LLM response:', content);
+    log.error('Failed to parse LLM response:', content);
     throw new Error(`Invalid LLM response format: ${(error as Error).message}`);
   }
 }

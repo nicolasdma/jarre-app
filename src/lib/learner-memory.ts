@@ -109,7 +109,7 @@ export async function updateLearnerConceptMemory(
       .select('misconceptions, strengths, escalation_level, analogies, open_questions, personal_examples, connections_made')
       .eq('user_id', userId)
       .eq('concept_id', conceptId)
-      .single();
+      .maybeSingle();
 
     const existingMisconceptions: string[] = Array.isArray(existing?.misconceptions)
       ? existing.misconceptions

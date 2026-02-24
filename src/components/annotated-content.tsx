@@ -7,6 +7,9 @@ import { HighlightLayer } from './highlight-layer';
 import { createAnchor } from '@/lib/text-anchor';
 import type { Annotation, InlineQuiz, VideoSegment } from '@/types';
 import type { FigureRegistry } from '@/lib/figure-registry';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('AnnotatedContent');
 
 interface AnnotatedContentProps {
   sectionId: string;
@@ -52,7 +55,7 @@ export function AnnotatedContent({
         setLoaded(true);
       })
       .catch((err) => {
-        console.error('[AnnotatedContent] Failed to fetch annotations:', err);
+        log.error('Failed to fetch annotations:', err);
         if (!cancelledRef.current) setLoaded(true);
       });
 
@@ -105,7 +108,7 @@ export function AnnotatedContent({
         );
       })
       .catch((err) => {
-        console.error('[AnnotatedContent] Failed to save annotation:', err);
+        log.error('Failed to save annotation:', err);
         setAnnotations((prev) => prev.filter((a) => a.id !== tempId));
       });
   }, [sectionId]);

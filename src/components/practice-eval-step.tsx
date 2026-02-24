@@ -5,6 +5,9 @@ import { SectionLabel } from '@/components/ui/section-label';
 import { t, type Language } from '@/lib/translations';
 import type { PracticeEvalState, PracticeEvalAnswer } from '@/lib/learn-progress';
 import type { ReviewSubmitResponse } from '@/types';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('PracticeEval');
 
 // ============================================================================
 // Types
@@ -343,7 +346,7 @@ export function PracticeEvalStep({
         };
         updateState(next);
       } catch (err) {
-        console.error('[PracticeEval] Submit error:', err);
+        log.error('Submit error:', err);
       } finally {
         setEvaluating((prev) => {
           const s = new Set(prev);

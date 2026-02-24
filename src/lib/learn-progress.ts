@@ -5,6 +5,10 @@
  * where they left off across devices.
  */
 
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Learn/Progress');
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -88,7 +92,7 @@ export function saveLearnProgress(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ resourceId, ...progress }),
     }).catch((err) => {
-      console.error('[Learn/Progress] Failed to save:', err);
+      log.error('Failed to save:', err);
     });
   }, 1000);
 }

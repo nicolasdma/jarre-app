@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('InlineQuiz');
 
 // ============================================================================
 // Types
@@ -299,7 +302,7 @@ export function InlineQuiz({ quiz, overrideState, onAnswer }: InlineQuizProps) {
       });
     } catch (error) {
       // Fallback: use deterministic MC result, don't block the user
-      console.warn('[InlineQuiz] LLM evaluation failed, falling back to deterministic:', error);
+      log.warn('LLM evaluation failed, falling back to deterministic:', error);
       setState('answered');
       saveAnswer(quiz.id, {
         selectedOption,

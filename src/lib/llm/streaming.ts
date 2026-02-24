@@ -10,6 +10,9 @@
  */
 
 import { DeepSeekMessage } from './deepseek';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('Streaming');
 
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const DEFAULT_MODEL = 'deepseek-chat';
@@ -211,6 +214,6 @@ function processSSELine(
     }
   } catch {
     // Malformed JSON from upstream — log but don't crash the stream
-    console.error('[streaming] Failed to parse DeepSeek SSE payload:', payload);
+    log.error('Failed to parse DeepSeek SSE payload:', payload);
   }
 }

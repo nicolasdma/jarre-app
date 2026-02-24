@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('SpeechEngine');
 
 // ============================================================================
 // Types
@@ -149,7 +152,7 @@ export function useSpeechEngine(): SpeechEngine {
       utterance.onerror = (e) => {
         if (gen !== genRef.current) return;
         if (e.error !== 'interrupted' && e.error !== 'canceled') {
-          console.warn('[Whisper] Speech error:', e.error);
+          log.warn('Speech error:', e.error);
         }
         onChunkEnd();
       };

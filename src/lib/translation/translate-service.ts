@@ -248,6 +248,7 @@ export async function getTranslatedSections(
         log.error(`Failed to cache section translation: ${upsertErr.message}`);
       }
 
+      // Fire-and-forget: token usage tracking
       logTokenUsage({ userId, category: 'translation-sections', tokens }).catch(() => {});
     });
 
@@ -298,7 +299,7 @@ export async function getTranslatedActivateData(
     .select('activate_data, content_hash')
     .eq('resource_id', resourceId)
     .eq('language', targetLanguage)
-    .single();
+    .maybeSingle();
 
   if (cached && cached.content_hash === currentHash) {
     return { data: cached.activate_data as ActivateData, pendingTranslation: false };
@@ -355,6 +356,7 @@ export async function getTranslatedActivateData(
         log.error(`Failed to cache activate_data translation: ${upsertErr.message}`);
       }
 
+      // Fire-and-forget: token usage tracking
       logTokenUsage({ userId, category: 'translation-activate', tokens: tokensUsed }).catch(() => {});
       log.info(`Background activate_data translation complete for ${resourceId}`);
     } catch (err) {
@@ -515,6 +517,7 @@ export async function getTranslatedQuizzes(
         log.error(`Failed to cache quiz translation: ${upsertErr.message}`);
       }
 
+      // Fire-and-forget: token usage tracking
       logTokenUsage({ userId, category: 'translation-quizzes', tokens: tokensUsed }).catch(() => {});
     });
 

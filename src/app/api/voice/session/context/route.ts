@@ -102,7 +102,7 @@ export const GET = withAuth(async (request, { supabase, user }) => {
     .not('cached_summary', 'is', null)
     .order('started_at', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   let memoryPromise: Promise<LearnerConceptMemory[]> = Promise.resolve([]);
   if (conceptIdsParam) {

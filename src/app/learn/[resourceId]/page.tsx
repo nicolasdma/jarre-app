@@ -53,7 +53,7 @@ export default async function LearnPage({ params }: PageProps) {
       .select('current_step, active_section, completed_sections, section_state, review_state')
       .eq('user_id', user.id)
       .eq('resource_id', resourceId)
-      .single(),
+      .maybeSingle(),
     supabase
       .from('resource_concepts')
       .select('concept_id, is_prerequisite, concepts (id, name, canonical_definition)')

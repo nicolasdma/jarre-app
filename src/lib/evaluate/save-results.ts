@@ -180,7 +180,7 @@ export async function saveEvaluationResults({
       },
     })
     .then(({ error: logError }: { error: any }) => {
-      if (logError) console.error('[Evaluate/SaveResults] Failed to log consumption:', logError.message);
+      if (logError) log.error('Failed to log consumption:', logError.message);
     });
 
   return {
@@ -260,7 +260,7 @@ export async function updateConceptMastery({
     .select('level')
     .eq('user_id', userId)
     .eq('concept_id', conceptId)
-    .single();
+    .maybeSingle();
 
   const currentLevel = parseMasteryLevel(existingProgress?.level);
   const newLevel = computeNewLevelFromEvaluation(currentLevel, questionType, score);

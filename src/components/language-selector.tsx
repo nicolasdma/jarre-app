@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createLogger } from '@/lib/logger';
+
+const log = createLogger('LanguageSelector');
 
 type Language = 'es' | 'en';
 
@@ -28,7 +31,7 @@ export function LanguageSelector({ currentLanguage }: { currentLanguage: Languag
       setLanguage(nextLanguage);
       router.refresh();
     } catch (error) {
-      console.error('Error updating language:', error);
+      log.error('Error updating language:', error);
     } finally {
       setIsLoading(false);
     }
