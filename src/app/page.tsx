@@ -40,7 +40,7 @@ export default async function Home() {
             </p>
             <div className="flex gap-4 mt-8">
               <Link
-                href="/library"
+                href="/dashboard"
                 className="font-mono text-[11px] tracking-[0.15em] bg-j-accent text-j-text-on-accent px-6 py-3 uppercase hover:bg-j-accent-hover transition-colors"
               >
                 Start Learning
@@ -87,5 +87,5 @@ export default async function Home() {
   }
 
   // Authenticated — redirect to library
-  redirect('/library');
+  redirect('/dashboard');
 }

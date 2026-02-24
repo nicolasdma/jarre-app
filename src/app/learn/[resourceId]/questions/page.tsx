@@ -52,7 +52,7 @@ export default async function QuestionsPage({ params }: PageProps) {
         <p className="mb-4 text-j-text-secondary">
           Preguntas guía no disponibles para este recurso.
         </p>
-        <Link href="/library" className="text-j-accent hover:underline">
+        <Link href="/dashboard" className="text-j-accent hover:underline">
           ← Volver a la biblioteca
         </Link>
       </div>

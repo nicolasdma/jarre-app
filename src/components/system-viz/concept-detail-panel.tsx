@@ -169,7 +169,7 @@ function ConceptView({
 
       {/* Action link */}
       <Link
-        href="/library"
+        href="/dashboard"
         className="font-mono text-[10px] tracking-[0.15em] text-j-accent uppercase hover:text-j-accent-hover transition-colors"
       >
         {language === 'es' ? 'Ver recursos →' : 'View resources →'}

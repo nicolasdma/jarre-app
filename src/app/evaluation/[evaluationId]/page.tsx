@@ -118,7 +118,7 @@ export default async function EvaluationDetailPage({ params }: PageProps) {
         <Header />
         <main className="mx-auto max-w-4xl px-6 py-8">
           <p className="mb-4 text-red-600">{t('evalDetail.notFound', lang)}</p>
-          <Link href="/library" className="text-blue-600 hover:underline">
+          <Link href="/dashboard" className="text-blue-600 hover:underline">
             {t('resource.backToLibrary', lang)}
           </Link>
         </main>

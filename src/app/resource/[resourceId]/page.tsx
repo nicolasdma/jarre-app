@@ -50,7 +50,7 @@ export default async function ResourcePage({ params }: PageProps) {
       <div className="flex h-screen items-center justify-center bg-stone-100">
         <div className="text-center">
           <p className="mb-4 text-red-600">{t('resource.notFound', lang)}</p>
-          <Link href="/library" className="text-blue-600 hover:underline">
+          <Link href="/dashboard" className="text-blue-600 hover:underline">
             {t('resource.backToLibrary', lang)}
           </Link>
         </div>
@@ -86,7 +86,7 @@ export default async function ResourcePage({ params }: PageProps) {
       {/* Minimal floating nav - top left */}
       <div className="absolute left-3 top-3 z-50 flex items-center gap-2">
         <Link
-          href="/library"
+          href="/dashboard"
           className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm hover:bg-black/80"
           title={t('resource.backToLibrary', lang)}
         >

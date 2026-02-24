@@ -29,7 +29,7 @@ export function ResourceActions({ resourceId, language, showDelete, showRetry }:
     try {
       const res = await fetch(`/api/resources/${resourceId}`, { method: 'DELETE' });
       if (res.ok) {
-        router.push('/library');
+        router.push('/dashboard');
         router.refresh();
       }
     } catch {

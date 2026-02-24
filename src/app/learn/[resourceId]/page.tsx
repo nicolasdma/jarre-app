@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { GenericActivate } from '@/components/generic-activate';
 import { DDIAChapter1 } from './ddia-ch1';
 
 export async function generateMetadata({ params }: { params: Promise<{ resourceId: string }> }): Promise<Metadata> {
@@ -82,8 +83,6 @@ const EXPLANATION_COMPONENTS: Record<string, () => React.JSX.Element> = {
   'p2-lilian-weng-distributed': () => <LilianWengDistributed />,
   'p2-horace-he-gpu': () => <HoraceHeGpu />,
 };
-
-const AVAILABLE_RESOURCES = new Set(Object.keys(EXPLANATION_COMPONENTS));
 
 export default async function LearnPage({ params }: PageProps) {
   const { resourceId } = await params;
@@ -229,7 +228,7 @@ export default async function LearnPage({ params }: PageProps) {
         resourceTitle={resource.title}
         resourceType={resource.type}
         sections={flowSections}
-        activateComponent={renderContent?.()}
+        activateComponent={renderContent?.() ?? (resource.activate_data ? <GenericActivate data={resource.activate_data} title={resource.title} /> : undefined)}
         playgroundHref={practical?.href}
         playgroundLabel={practical?.label}
         concepts={conceptsTaught}
@@ -244,11 +243,11 @@ export default async function LearnPage({ params }: PageProps) {
   }
 
   // If no sections and no explanation component, show message
-  if (!AVAILABLE_RESOURCES.has(resourceId)) {
+  if (!renderContent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-j-bg p-8">
         <p className="mb-4 text-j-text-secondary">Contenido no disponible aún para este recurso.</p>
-        <Link href="/library" className="text-j-accent hover:underline">
+        <Link href="/dashboard" className="text-j-accent hover:underline">
           ← Volver a la biblioteca
         </Link>
       </div>
@@ -264,7 +263,7 @@ export default async function LearnPage({ params }: PageProps) {
       <div className="sticky top-0 z-50 border-b border-j-border bg-j-bg/90 backdrop-blur-sm">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 sm:px-8 py-4">
           <Link
-            href="/library"
+            href="/dashboard"
             className="text-sm text-j-text-tertiary hover:text-j-text transition-colors"
           >
             ← Biblioteca

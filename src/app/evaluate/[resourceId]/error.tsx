@@ -35,7 +35,7 @@ export default function EvaluateError({
             Reintentar
           </button>
           <Link
-            href="/library"
+            href="/dashboard"
             className="px-4 py-2 border border-j-border text-j-text text-xs font-mono tracking-[0.15em] uppercase hover:bg-j-surface transition-colors"
           >
             Ir a biblioteca

@@ -210,7 +210,7 @@ function StickyHeader({
         isFocusMode ? 'py-2' : 'py-4'
       }`}>
         <Link
-          href="/library"
+          href="/dashboard"
           className={`text-j-text-tertiary hover:text-j-text transition-all duration-300 ${
             isFocusMode ? 'text-xs' : 'text-sm'
           }`}

@@ -530,7 +530,7 @@ export function VoiceEvaluationFlow({
         <div className="flex gap-4 mt-10 pt-10 border-t border-j-border">
           {isHighScore ? (
             <button
-              onClick={() => router.push('/library')}
+              onClick={() => router.push('/dashboard')}
               className="font-mono text-[10px] tracking-[0.15em] bg-j-accent text-j-text-on-accent px-6 py-2 uppercase hover:bg-j-accent-hover transition-colors"
             >
               {t('backToLibrary', language)}
@@ -553,7 +553,7 @@ export function VoiceEvaluationFlow({
           ) : (
             <>
               <button
-                onClick={() => router.push('/library')}
+                onClick={() => router.push('/dashboard')}
                 className="font-mono text-[10px] tracking-[0.15em] border border-j-border-input text-j-text-secondary px-4 py-2 uppercase hover:border-j-accent transition-colors"
               >
                 {t('backToLibrary', language)}

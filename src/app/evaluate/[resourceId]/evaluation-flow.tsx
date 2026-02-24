@@ -789,7 +789,7 @@ export function EvaluationFlow({ resource, concepts, userId, language, onCancel 
           {isHighScore ? (
             /* ≥80%: Mastery demonstrated — done, go back to library */
             <button
-              onClick={() => router.push('/library')}
+              onClick={() => router.push('/dashboard')}
               className="font-mono text-[10px] tracking-[0.15em] bg-j-accent text-j-text-on-accent px-6 py-2 uppercase hover:bg-j-accent-hover transition-colors"
             >
               {t('eval.backToLibrary', language)}
@@ -821,7 +821,7 @@ export function EvaluationFlow({ resource, concepts, userId, language, onCancel 
             /* 60-79%: Passed with gaps — review material or move on */
             <>
               <button
-                onClick={() => router.push('/library')}
+                onClick={() => router.push('/dashboard')}
                 className="font-mono text-[10px] tracking-[0.15em] border border-j-border-input text-j-text-secondary px-4 py-2 uppercase hover:border-j-accent transition-colors"
               >
                 {t('eval.backToLibrary', language)}

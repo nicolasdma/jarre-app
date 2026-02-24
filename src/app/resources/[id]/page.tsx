@@ -35,7 +35,7 @@ export default async function UserResourcePage({ params }: { params: Promise<{ i
     .single();
 
   if (!resource) {
-    redirect('/library');
+    redirect('/dashboard');
   }
 
   // Handle processing status
@@ -45,7 +45,7 @@ export default async function UserResourcePage({ params }: { params: Promise<{ i
         <Header currentPage="library" />
         <main className="mx-auto max-w-4xl px-8 py-12">
           <Link
-            href="/library"
+            href="/dashboard"
             className="inline-flex items-center gap-2 text-sm text-j-text-tertiary hover:text-j-text transition-colors mb-8"
           >
             <ArrowLeft size={14} />
@@ -127,7 +127,7 @@ export default async function UserResourcePage({ params }: { params: Promise<{ i
       <main className="mx-auto max-w-4xl px-8 py-12">
         {/* Back link */}
         <Link
-          href="/library"
+          href="/dashboard"
           className="inline-flex items-center gap-2 text-sm text-j-text-tertiary hover:text-j-text transition-colors mb-8"
         >
           <ArrowLeft size={14} />

@@ -71,7 +71,7 @@ export async function Header({ currentPage }: HeaderProps) {
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             <Link
-              href="/library"
+              href="/dashboard"
               aria-current={currentPage === 'library' ? 'page' : undefined}
               className={`font-mono text-[11px] tracking-[0.15em] uppercase transition-colors ${
                 currentPage === 'library'
@@ -101,30 +101,6 @@ export async function Header({ currentPage }: HeaderProps) {
                       {dueCount > 99 ? '99+' : dueCount}
                     </span>
                   )}
-                </Link>
-                <Link
-                  href="/mi-sistema"
-                  aria-current={currentPage === 'mi-sistema' ? 'page' : undefined}
-                  className={`font-mono text-[11px] tracking-[0.15em] uppercase transition-colors ${
-                    currentPage === 'mi-sistema'
-                      ? 'text-j-accent'
-                      : 'text-j-text-secondary hover:text-j-text'
-                  }`}
-                >
-                  <span className="text-j-accent">03</span><span className="mx-1 text-j-text-tertiary">.</span>
-                  {lang === 'es' ? 'Mi Sistema' : 'My System'}
-                </Link>
-                <Link
-                  href="/journal"
-                  aria-current={currentPage === 'journal' ? 'page' : undefined}
-                  className={`font-mono text-[11px] tracking-[0.15em] uppercase transition-colors ${
-                    currentPage === 'journal'
-                      ? 'text-j-accent'
-                      : 'text-j-text-secondary hover:text-j-text'
-                  }`}
-                >
-                  <span className="text-j-accent">04</span><span className="mx-1 text-j-text-tertiary">.</span>
-                  {lang === 'es' ? 'Bitácora' : 'Journal'}
                 </Link>
                 {/* Engagement badges */}
                 <Link href="/profile" className="flex items-center gap-3 pl-2 border-l border-j-border hover:opacity-80 transition-opacity">
@@ -166,11 +142,9 @@ export async function Header({ currentPage }: HeaderProps) {
           {user ? (
             <MobileNav
               links={[
-                { href: '/library', label: `01. ${t('nav.library', lang)}`, active: currentPage === 'library' },
+                { href: '/dashboard', label: `01. ${t('nav.library', lang)}`, active: currentPage === 'library' },
                 { href: '/review', label: `02. ${t('nav.review', lang)}`, active: currentPage === 'review', badge: dueCount },
-                { href: '/mi-sistema', label: `03. ${lang === 'es' ? 'Mi Sistema' : 'My System'}`, active: currentPage === 'mi-sistema' },
-                { href: '/journal', label: `04. ${lang === 'es' ? 'Bitácora' : 'Journal'}`, active: currentPage === 'journal' },
-                { href: '/profile', label: `05. ${lang === 'es' ? 'Perfil' : 'Profile'}`, active: false },
+                { href: '/profile', label: `03. ${lang === 'es' ? 'Perfil' : 'Profile'}`, active: false },
               ]}
               streakDays={streakDays}
               totalXp={totalXp}
@@ -181,7 +155,7 @@ export async function Header({ currentPage }: HeaderProps) {
           ) : (
             <MobileNav
               links={[
-                { href: '/library', label: `01. ${t('nav.library', lang)}`, active: currentPage === 'library' },
+                { href: '/dashboard', label: `01. ${t('nav.library', lang)}`, active: currentPage === 'library' },
                 { href: '/login', label: t('common.login', lang), active: false },
                 { href: '/signup', label: t('common.signup', lang), active: false },
               ]}
