@@ -7,62 +7,7 @@ import { toast } from 'sonner';
 import { ErrorMessage } from '@/components/error-message';
 import { SectionLabel } from '@/components/ui/section-label';
 import { categorizeError } from '@/lib/utils/categorize-error';
-
-type Language = 'es' | 'en';
-
-const translations = {
-  'eval.testUnderstanding': { es: 'Evalua tu comprension de este', en: 'Test your understanding of this' },
-  'eval.conceptsToEvaluate': { es: 'Conceptos a evaluar', en: 'Concepts to evaluate' },
-  'eval.aiWillGenerate': {
-    es: 'La IA generara 5 preguntas para evaluar tu comprension. Responde honestamente — esto ayuda a identificar areas de exploracion en tu conocimiento.',
-    en: 'AI will generate 5 questions to test your understanding. Answer honestly — this helps identify areas to explore in your knowledge.'
-  },
-  'eval.start': { es: 'Comenzar Evaluacion', en: 'Start Evaluation' },
-  'eval.generating': { es: 'Generando preguntas...', en: 'Generating questions...' },
-  'eval.generatingEstimate': { es: 'Esto suele tomar ~15 segundos', en: 'This usually takes ~15 seconds' },
-  'eval.cancelLoading': { es: 'Cancelar', en: 'Cancel' },
-  'eval.answerAll': { es: 'Responde todas las preguntas para completar la evaluacion', en: 'Answer all questions to complete the evaluation' },
-  'eval.question': { es: 'Pregunta', en: 'Question' },
-  'eval.of': { es: 'de', en: 'of' },
-  'eval.concept': { es: 'Concepto', en: 'Concept' },
-  'eval.placeholder': { es: 'Escribi tu respuesta aqui...', en: 'Type your answer here...' },
-  'eval.cancel': { es: 'Cancelar', en: 'Cancel' },
-  'eval.submit': { es: 'Enviar Respuestas', en: 'Submit Answers' },
-  'eval.answerAllCount': { es: 'Responde todas las preguntas', en: 'Answer all questions' },
-  'eval.evaluating': { es: 'Evaluando tus respuestas...', en: 'Evaluating your answers...' },
-  'eval.evaluatingEstimate': { es: 'Esto suele tomar ~15 segundos', en: 'This usually takes ~15 seconds' },
-  'eval.aiReviewing': { es: 'La IA esta revisando tus respuestas', en: 'AI is reviewing your responses' },
-  'eval.complete': { es: 'Evaluacion Completada', en: 'Evaluation Complete' },
-  'eval.overallScore': { es: 'Puntuacion General', en: 'Overall Score' },
-  'eval.yourAnswer': { es: 'Tu respuesta', en: 'Your answer' },
-  'eval.feedback': { es: 'Retroalimentacion', en: 'Feedback' },
-  'eval.saved': { es: 'Evaluacion guardada', en: 'Evaluation saved' },
-  'eval.cancelConfirm': {
-    es: 'Seguro? Tu progreso se guardara como borrador.',
-    en: 'Are you sure? Your progress will be saved as a draft.'
-  },
-  'eval.discoveryMessage': {
-    es: 'Las evaluaciones son herramientas de descubrimiento, no juicios',
-    en: 'Evaluations are discovery tools, not judgments'
-  },
-  'eval.lowScoreEncouragement': {
-    es: 'Cuando te sientas listo, volve a intentarlo — cada intento es aprendizaje',
-    en: 'When you feel ready, try again — each attempt is learning'
-  },
-  'eval.lowScoreIdentified': {
-    es: 'Identificaste areas clave para profundizar',
-    en: 'You identified key areas to explore further'
-  },
-  'eval.retryEvaluation': { es: 'Volver a intentar', en: 'Try again' },
-  'eval.reviewMaterial': { es: 'Repasar material', en: 'Review material' },
-  'eval.backToLibrary': { es: 'Volver a la biblioteca', en: 'Back to library' },
-  'eval.hintShort': { es: '2-4 oraciones suelen ser suficientes', en: '2-4 sentences are usually enough' },
-  'eval.hintLong': { es: 'Un parrafo con ejemplo concreto', en: 'A paragraph with a concrete example' },
-} as const;
-
-function t(key: keyof typeof translations, lang: Language): string {
-  return translations[key]?.[lang] || translations[key]?.en || key;
-}
+import { t, type Language } from '@/lib/translations';
 
 // Question types that require deeper answers
 const DEEP_QUESTION_TYPES = new Set(['scenario', 'tradeoff', 'trade-off', 'connection', 'error_detection']);

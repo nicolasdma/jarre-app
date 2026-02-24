@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { StudyView } from './study-view';
+import { TABLES } from '@/lib/db/tables';
 import { t, type Language } from '@/lib/translations';
 
 export async function generateMetadata({ params }: { params: Promise<{ resourceId: string }> }): Promise<Metadata> {
@@ -31,7 +32,7 @@ export default async function ResourcePage({ params }: PageProps) {
 
   // Get user's language preference
   const { data: profile } = await supabase
-    .from('user_profiles')
+    .from(TABLES.userProfiles)
     .select('language')
     .eq('id', user.id)
     .single();
@@ -40,7 +41,7 @@ export default async function ResourcePage({ params }: PageProps) {
 
   // Get resource
   const { data: resource, error: resourceError } = await supabase
-    .from('resources')
+    .from(TABLES.resources)
     .select('*')
     .eq('id', resourceId)
     .single();

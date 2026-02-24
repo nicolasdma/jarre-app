@@ -3,6 +3,7 @@ import { Inter, Instrument_Serif } from "next/font/google";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { createClient } from "@/lib/supabase/server";
+import { TABLES } from "@/lib/db/tables";
 import { AppShell } from "@/components/app-shell";
 import { TutorContextProvider } from "@/components/contexts/tutor-context";
 import type { Language } from "@/lib/translations";
@@ -47,7 +48,7 @@ export default async function RootLayout({
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
-        .from('user_profiles')
+        .from(TABLES.userProfiles)
         .select('language')
         .eq('id', user.id)
         .single();

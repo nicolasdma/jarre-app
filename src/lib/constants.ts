@@ -178,6 +178,20 @@ export const DEFINITION_TRUNCATION_CHARS = 80;
 // VOICE COMPRESSION
 // ============================================================================
 
+// ============================================================================
+// VOICE (Gemini Live)
+// ============================================================================
+
+/** Gemini model for voice sessions */
+export const GEMINI_VOICE_MODEL = 'gemini-2.5-flash-native-audio-preview-12-2025';
+
+/** Voice persona used in Gemini Live sessions */
+export const GEMINI_VOICE_NAME = 'Kore';
+
+// ============================================================================
+// VOICE COMPRESSION
+// ============================================================================
+
 /** Transcript buffer entries before triggering compression in fallback */
 export const VOICE_COMPRESS_THRESHOLD = 80;
 

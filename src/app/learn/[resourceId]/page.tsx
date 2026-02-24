@@ -11,6 +11,7 @@ import {
   getTranslatedQuizzes,
 } from '@/lib/translation/translate-service';
 import type { ActivateData } from '@/lib/pipeline/types';
+import { TABLES } from '@/lib/db/tables';
 import type { Language } from '@/lib/translations';
 import type { LearnProgress } from '@/lib/learn-progress';
 import type { InlineQuiz, VideoSegment } from '@/types';
@@ -41,21 +42,21 @@ export default async function LearnPage({ params }: PageProps) {
 
   // Get resource + user language + resource sections + learn progress + concepts in parallel
   const [resourceResult, profileResult, sectionsResult, progressResult, conceptsResult] = await Promise.all([
-    supabase.from('resources').select('*').eq('id', resourceId).single(),
-    supabase.from('user_profiles').select('language').eq('id', user.id).single(),
+    supabase.from(TABLES.resources).select('*').eq('id', resourceId).single(),
+    supabase.from(TABLES.userProfiles).select('language').eq('id', user.id).single(),
     supabase
-      .from('resource_sections')
+      .from(TABLES.resourceSections)
       .select('id, resource_id, concept_id, section_title, content_markdown, sort_order')
       .eq('resource_id', resourceId)
       .order('sort_order', { ascending: true }),
     supabase
-      .from('learn_progress')
+      .from(TABLES.learnProgress)
       .select('current_step, active_section, completed_sections, section_state, review_state')
       .eq('user_id', user.id)
       .eq('resource_id', resourceId)
       .maybeSingle(),
     supabase
-      .from('resource_concepts')
+      .from(TABLES.resourceConcepts)
       .select('concept_id, is_prerequisite, concepts (id, name, canonical_definition)')
       .eq('resource_id', resourceId),
   ]);

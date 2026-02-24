@@ -10,7 +10,7 @@ import {
 import { buildVoiceSystemInstruction } from '@/lib/llm/voice-prompts';
 import { formatMemoryForPrompt, type LearnerConceptMemory } from '@/lib/learner-memory';
 import { createLogger } from '@/lib/logger';
-import { VOICE_COMPRESS_THRESHOLD, VOICE_FALLBACK_RECENT_TURNS } from '@/lib/constants';
+import { GEMINI_VOICE_MODEL, GEMINI_VOICE_NAME, VOICE_COMPRESS_THRESHOLD, VOICE_FALLBACK_RECENT_TURNS } from '@/lib/constants';
 import type { Language } from '@/lib/translations';
 import type { Tool, FunctionCall, FunctionResponse } from '@google/genai';
 
@@ -72,8 +72,6 @@ interface VoiceSession {
 // Constants
 // ============================================================================
 
-const MODEL = 'gemini-2.5-flash-native-audio-preview-12-2025';
-const VOICE_NAME = 'Kore';
 const MIC_CHUNK_INTERVAL_MS = 100;
 // Session end signal: the voice prompt instructs the tutor to say this exact phrase when done.
 // Must be specific enough to never appear in normal explanations — "quiz" alone caused false positives.
@@ -740,8 +738,8 @@ export function useVoiceSession({
 
       // 5. Connect WebSocket (systemInstruction is locked in the ephemeral token)
       await client.connect(token, {
-        model: MODEL,
-        voiceName: VOICE_NAME,
+        model: GEMINI_VOICE_MODEL,
+        voiceName: GEMINI_VOICE_NAME,
         ...(paramsRef.current.tools ? { tools: paramsRef.current.tools } : {}),
       });
 

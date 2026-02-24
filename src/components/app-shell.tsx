@@ -32,10 +32,8 @@ interface AppShellProps {
   language: Language;
 }
 
-// Placeholder messages — will be replaced with real tutor state
-const TUTOR_GREETING = [
-  'Ready when you are. Click me to start a session.',
-];
+// Placeholder message — will be replaced with real tutor state
+const TUTOR_GREETING = 'Ready when you are. Click me to start a session.';
 
 /** Routes where the tutor sidebar is shown (internal app pages) */
 const TUTOR_SIDEBAR_ROUTES = [
@@ -45,7 +43,6 @@ const TUTOR_SIDEBAR_ROUTES = [
   '/learn',
   '/journal',
   '/mi-sistema',
-  '/playground',
 ];
 
 function useShouldShowSidebar(): boolean {
@@ -147,7 +144,7 @@ export function AppShell({ children, language }: AppShellProps) {
                         ? `Evaluación de ${override.resourceTitle}. Click para empezar.`
                         : `Practicando ${override.resourceTitle}. Click para iniciar.`
                     ]
-                  : TUTOR_GREETING
+                  : [TUTOR_GREETING]
               } />
             </div>
           </aside>
