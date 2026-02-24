@@ -169,13 +169,14 @@ export async function writeToDb(params: {
       if (!existing) {
         const { error: conceptErr } = await supabase.from(TABLES.concepts).insert({
           id: newConceptId,
+          slug,
           name: section.conceptName || section.title,
           canonical_definition: `Key topic from "${resolve.title}": ${section.title}`,
           phase: '0',
         });
 
         if (conceptErr) {
-          log.warn(`Failed to create concept "${newConceptId}": ${conceptErr.message}`);
+          throw new Error(`Failed to create concept "${newConceptId}": ${conceptErr.message}`);
         }
       }
 
