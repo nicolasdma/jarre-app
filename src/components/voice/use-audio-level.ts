@@ -57,6 +57,7 @@ export function useAudioLevel(stream: MediaStream | null): number {
     return () => {
       cancelAnimationFrame(animFrameRef.current);
       source.disconnect();
+      // Fire-and-forget: audio resource cleanup
       audioContext.close().catch(() => {});
     };
   }, [stream]);

@@ -279,6 +279,7 @@ Return JSON with array of topics. Each topic has: topic (short title), position 
 
     const parsed = parseJsonResponse(content, DebateTopicSchema);
 
+    // Fire-and-forget: token usage tracking
     logTokenUsage({ userId, category: 'insight_debate_topics', tokens: tokensUsed }).catch(() => {});
 
     return parsed.topics.map((t) => ({

@@ -250,6 +250,7 @@ export function useVoiceSession({
     nextPlayTimeRef.current = 0;
     playbackAnalyserRef.current = null;
     if (playbackContextRef.current) {
+      // Fire-and-forget: audio resource cleanup
       playbackContextRef.current.close().catch(() => {});
       playbackContextRef.current = null;
     }
@@ -346,6 +347,7 @@ export function useVoiceSession({
       workletNodeRef.current = null;
     }
     if (audioContextRef.current) {
+      // Fire-and-forget: audio resource cleanup
       audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
     }

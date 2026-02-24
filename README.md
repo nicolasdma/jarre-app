@@ -26,9 +26,10 @@ Jarre helps you truly understand papers, books, and courses by:
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14+ (App Router), Tailwind CSS, shadcn/ui
+- **Frontend**: Next.js 16 (App Router), Tailwind CSS, shadcn/ui
 - **Auth + DB**: Supabase (Auth + Postgres + RLS)
 - **LLM**: DeepSeek V3 (primary), Kimi K2 (fallback)
+- **Voice**: Gemini Live (WebSocket, real-time audio)
 - **Hosting**: Vercel
 
 ## Development
@@ -67,13 +68,24 @@ DEEPL_API_KEY=your_key (optional, for translation)
 ```
 jarre/
 ├── src/
-│   ├── app/           # Next.js pages
-│   ├── components/    # React components
-│   ├── lib/           # Utilities (supabase, llm, etc.)
-│   └── types/         # TypeScript types
+│   ├── app/                    # Next.js pages & API routes
+│   │   ├── study/[resourceId]/ # PDF reader + canvas notes
+│   │   ├── learn/[resourceId]/ # Deep learning flow (sections, quizzes, eval)
+│   │   ├── resources/[id]/     # Resource detail (metadata, voice launcher)
+│   │   ├── evaluate/           # Evaluation flow
+│   │   ├── review/             # Spaced repetition review
+│   │   └── api/                # API routes
+│   ├── components/             # React components
+│   │   ├── ui/                 # Base UI (shadcn)
+│   │   ├── contexts/           # React context providers
+│   │   ├── voice/              # Voice session components
+│   │   └── ...                 # Feature components
+│   ├── data/                   # Static curriculum & resource data (TSX)
+│   ├── lib/                    # Utilities (supabase, llm, fsrs, etc.)
+│   └── types/                  # TypeScript types
 ├── supabase/
-│   └── migrations/    # Database migrations
-└── README.md          # This file
+│   └── migrations/             # Database migrations
+└── README.md                   # This file
 ```
 
 ## License
