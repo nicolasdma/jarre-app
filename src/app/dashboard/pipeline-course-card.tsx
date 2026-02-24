@@ -11,6 +11,7 @@ export interface PipelineCourseData {
   summary: string | null;
   sectionCount: number;
   createdAt: string;
+  isOwner: boolean;
   evalStats: {
     bestScore: number;
     evalCount: number;
@@ -56,7 +57,11 @@ export function PipelineCourseCard({
   return (
     <Link
       href={`/learn/${course.id}`}
-      className="group block overflow-hidden rounded-lg border border-j-border hover:border-j-accent/60 bg-j-surface transition-all hover:shadow-md"
+      className={`group block overflow-hidden rounded-lg border bg-j-surface transition-all hover:shadow-md ${
+        course.isOwner
+          ? 'border-j-accent/40 hover:border-j-accent'
+          : 'border-j-border hover:border-j-accent/60'
+      }`}
     >
       {/* Thumbnail */}
       <div className="relative aspect-video bg-j-border/30 overflow-hidden">

@@ -59,16 +59,7 @@ export default async function RootLayout({
 
   return (
     <html lang="es" suppressHydrationWarning>
-      <head>
-        {/* Inline script to prevent FOWT (Flash of Wrong Theme) */}
-        <script
-          id="theme-init"
-          // eslint-disable-next-line react/no-danger -- Required to prevent FOWT; content is static and safe
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('jarre-theme');if(t==='dark'){document.documentElement.classList.add('dark')}else if(!t){localStorage.setItem('jarre-theme','light')}}catch(e){}})()`,
-          }}
-        />
-      </head>
+      <head />
       <body
         className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} antialiased`}
       >
