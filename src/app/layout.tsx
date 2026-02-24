@@ -65,7 +65,7 @@ export default async function RootLayout({
           id="theme-init"
           // eslint-disable-next-line react/no-danger -- Required to prevent FOWT; content is static and safe
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('jarre-theme');if(t==='light'){document.documentElement.classList.remove('dark')}else{document.documentElement.classList.add('dark');if(!t){localStorage.setItem('jarre-theme','dark')}}}catch(e){document.documentElement.classList.add('dark')}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('jarre-theme');if(t==='dark'){document.documentElement.classList.add('dark')}else if(!t){localStorage.setItem('jarre-theme','light')}}catch(e){}})()`,
           }}
         />
       </head>
