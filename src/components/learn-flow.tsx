@@ -17,7 +17,6 @@ import { WhisperProvider } from '@/lib/whisper/whisper-context';
 import { useTutorContext } from '@/components/contexts/tutor-context';
 import type { VoiceMode } from '@/lib/llm/voice-unified-prompt';
 import { createLogger } from '@/lib/logger';
-import { WhisperToggle } from './whisper-toggle';
 
 const log = createLogger('LearnFlow');
 import type { FigureRegistry } from '@/lib/figure-registry';
@@ -225,9 +224,6 @@ function StickyHeader({
             );
           })}
         </div>
-
-        {/* Whisper toggle — disabled, feature toggled off */}
-        {/* <WhisperToggle language={language} /> */}
 
         {/* Right side: resource title + step info on desktop (lg+) */}
         <div className="hidden lg:flex items-center gap-3">

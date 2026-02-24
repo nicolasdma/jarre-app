@@ -2,14 +2,8 @@
   "name": "jarre-app",
   "version": "0.1.0",
   "private": true,
-  "author": "Nicolas De Maria",
+  "author": "Jarre Contributors",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/nicolasdma/jarre-app"
-  },
-  "bugs": "https://github.com/nicolasdma/jarre-app/issues",
-  "homepage": "https://github.com/nicolasdma/jarre-app#readme",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
