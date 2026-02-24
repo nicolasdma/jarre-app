@@ -2,8 +2,6 @@
 
 import { useState, useCallback, useEffect, useRef, memo } from 'react';
 import { AnnotatedContent } from './annotated-content';
-import { ConfidenceIndicator, type ConfidenceLevel } from './confidence-indicator';
-import { SelfExplanation } from './self-explanation';
 import { t, type Language } from '@/lib/translations';
 import type { ReviewSubmitResponse, InlineQuiz, VideoSegment, Exercise, ExerciseResult } from '@/types';
 import type { FigureRegistry } from '@/lib/figure-registry';
@@ -92,14 +90,6 @@ export const ConceptSection = memo(function ConceptSection({
       : null
   );
   const [postError, setPostError] = useState<string | null>(null);
-  const [postConfidence, setPostConfidence] = useState<ConfidenceLevel | null>(
-    (initialState?.postConfidence as ConfidenceLevel) ?? null
-  );
-  const [selfExplanation, setSelfExplanation] = useState(initialState?.selfExplanation ?? '');
-  const [selfExplanationValid, setSelfExplanationValid] = useState(
-    !!(initialState?.selfExplanation && initialState.selfExplanation.length >= 30)
-  );
-
   const [preFetchFailed, setPreFetchFailed] = useState(false);
   const [voiceCompleted, setVoiceCompleted] = useState(initialState?.voiceCompleted ?? false);
 
@@ -223,59 +213,6 @@ export const ConceptSection = memo(function ConceptSection({
     }
   }, [postAnswer, postQuestion, onStateChange, preAnswer, preAttempted]);
 
-  // Handle confidence selection
-  const handleConfidence = useCallback(
-    (level: ConfidenceLevel) => {
-      setPostConfidence(level);
-      // Send confidence to backend (fire-and-forget)
-      if (postQuestion) {
-        fetch('/api/review/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            questionId: postQuestion.questionId,
-            userAnswer: postAnswer.trim(),
-            confidence: level,
-          }),
-        }).catch(() => {});
-      }
-      onStateChange?.({
-        phase: 'post-test',
-        preAnswer,
-        preAttempted,
-        postScore: postResult?.score,
-        postIsCorrect: postResult?.isCorrect,
-        postFeedback: postResult?.feedback,
-        postExpectedAnswer: postResult?.expectedAnswer,
-        postDimensionScores: postResult?.dimensionScores,
-        postReasoning: postResult?.reasoning,
-        postConfidence: level,
-      });
-    },
-    [postQuestion, postAnswer, postResult, onStateChange, preAnswer, preAttempted]
-  );
-
-  // Handle self-explanation save
-  const handleSelfExplanation = useCallback(
-    (text: string) => {
-      setSelfExplanation(text);
-      onStateChange?.({
-        phase: 'post-test',
-        preAnswer,
-        preAttempted,
-        postScore: postResult?.score,
-        postIsCorrect: postResult?.isCorrect,
-        postFeedback: postResult?.feedback,
-        postExpectedAnswer: postResult?.expectedAnswer,
-        postDimensionScores: postResult?.dimensionScores,
-        postReasoning: postResult?.reasoning,
-        postConfidence: postConfidence ?? undefined,
-        selfExplanation: text,
-      });
-    },
-    [postResult, postConfidence, onStateChange, preAnswer, preAttempted]
-  );
-
   // Complete section
   const handleComplete = () => {
     setPhase('completed');
@@ -289,8 +226,6 @@ export const ConceptSection = memo(function ConceptSection({
       postExpectedAnswer: postResult?.expectedAnswer,
       postDimensionScores: postResult?.dimensionScores,
       postReasoning: postResult?.reasoning,
-      postConfidence: postConfidence ?? undefined,
-      selfExplanation: selfExplanation || undefined,
     });
     onComplete();
   };
@@ -646,25 +581,6 @@ export const ConceptSection = memo(function ConceptSection({
                   </p>
                 </div>
               )}
-
-              {/* TODO: Confidence + SelfExplanation disabled — users skip them
-              <ConfidenceIndicator
-                language={language}
-                onSelect={handleConfidence}
-                selected={postConfidence}
-              />
-              <SelfExplanation
-                language={language}
-                conceptName={section.sectionTitle}
-                initialValue={selfExplanation}
-                onSave={handleSelfExplanation}
-                required
-                minLength={postResult && postResult.score < 80 ? 50 : 30}
-                onValidChange={setSelfExplanationValid}
-                postTestScore={postResult?.score}
-                postTestCorrect={postResult?.isCorrect}
-              />
-              */}
 
               <button
                 onClick={handleComplete}

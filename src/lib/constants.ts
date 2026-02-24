@@ -21,19 +21,6 @@ export const LEVEL_4_SCORE = 80;
 /** Minimum correct micro-test answers to advance 0 → 1 */
 export const MICRO_TEST_THRESHOLD = 3;
 
-// ============================================================================
-// SM-2 SPACED REPETITION
-// ============================================================================
-
-/** Minimum ease factor (floor) */
-export const SM2_MIN_EASE = 1.3;
-
-/** Maximum ease factor (ceiling) */
-export const SM2_MAX_EASE = 2.5;
-
-/** Maximum interval between reviews (days) */
-export const SM2_MAX_INTERVAL_DAYS = 180;
-
 /** Score boundaries for rating derivation */
 export const SCORE_RATING_BOUNDARIES = {
   easy: 80,
@@ -89,13 +76,6 @@ export const ANCHOR_CONTEXT_LENGTH = 50;
 
 /** Maximum canvas data size (bytes) */
 export const MAX_CANVAS_SIZE = 10 * 1024 * 1024; // 10MB
-
-// ============================================================================
-// SELF-EXPLANATION
-// ============================================================================
-
-/** Length above which self-explanation is auto-considered genuine */
-export const SELF_EXPLANATION_AUTO_GENUINE_LENGTH = 120;
 
 // ============================================================================
 // PDF PROXY
@@ -158,7 +138,6 @@ export const TOKEN_BUDGETS = {
   INSIGHTS: 1000,
   EVAL_GENERATE: 2000,
   EVAL_SUBMIT: 2000,
-  SELF_EXPLANATION: 5,
   PLAYGROUND_TUTOR: 300,
   PLAYGROUND_HINT: 150,
   // Pipeline stages

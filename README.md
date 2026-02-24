@@ -95,12 +95,14 @@ npm run dev
 ```env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_key
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+SUPABASE_SECRET_KEY=your_secret_key
 
 # LLM APIs
 DEEPSEEK_API_KEY=your_key
 KIMI_API_KEY=your_key (optional fallback)
+GEMINI_API_KEY=your_key (required for voice)
+DEEPL_API_KEY=your_key (optional, for translation)
 ```
 
 ## Project Structure
@@ -114,17 +116,9 @@ jarre/
 │   └── types/         # TypeScript types
 ├── supabase/
 │   └── migrations/    # Database migrations
-├── plan/              # Session plans by date
 ├── CLAUDE.md          # AI assistant rules
-├── BACKLOG.md         # Pending tasks
 └── README.md          # This file
 ```
-
-## Documentation
-
-- **BACKLOG.md** - All pending tasks, updated every session
-- **plan/** - Session logs with decisions and progress
-- **CLAUDE.md** - Rules for AI-assisted development
 
 ## License
 
