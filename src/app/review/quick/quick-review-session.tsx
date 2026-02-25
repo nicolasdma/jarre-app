@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { toast } from 'sonner';
+import { PricingModal } from '@/components/billing/pricing-modal';
 import { CardRouter } from '@/components/review/card-router';
 import { ErrorMessage } from '@/components/error-message';
 import { categorizeError } from '@/lib/utils/categorize-error';
 import type { Language } from '@/lib/translations';
 import type { UnifiedReviewCard, ReviewSubmitResponse } from '@/types';
+import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
 
 interface QuickReviewSessionProps {
   language: Language;
@@ -26,6 +29,8 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [completed, setCompleted] = useState<CompletedCard[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [errorAction, setErrorAction] = useState<'retry' | 'relogin' | 'wait' | 'upgrade' | null>(null);
+  const [showPricing, setShowPricing] = useState(false);
   const [phase, setPhase] = useState<'loading' | 'card' | 'summary'>('loading');
 
   // Fetch cards on mount
@@ -49,6 +54,7 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
       } catch (err) {
         const categorized = categorizeError(err);
         setError(categorized.message);
+        setErrorAction(categorized.action);
       } finally {
         setIsLoading(false);
       }
@@ -66,7 +72,7 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
         ? { cardId: card.sourceId, selfRating: rating }
         : { questionId: card.sourceId, userAnswer: rating }; // fallback
 
-      const response = await fetch('/api/review/submit', {
+      const response = await fetchWithKeys('/api/review/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -85,6 +91,7 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
     } catch (err) {
       const categorized = categorizeError(err);
       setError(categorized.message);
+      setErrorAction(categorized.action);
     } finally {
       setIsSubmitting(false);
     }
@@ -100,7 +107,7 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
         ? { cardId: card.sourceId, selectedAnswer: answer }
         : { questionId: card.sourceId, selectedAnswer: answer };
 
-      const response = await fetch('/api/review/submit', {
+      const response = await fetchWithKeys('/api/review/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -119,6 +126,7 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
     } catch (err) {
       const categorized = categorizeError(err);
       setError(categorized.message);
+      setErrorAction(categorized.action);
     } finally {
       setIsSubmitting(false);
     }
@@ -130,7 +138,7 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/review/submit', {
+      const response = await fetchWithKeys('/api/review/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questionId: card.sourceId, userAnswer: answer }),
@@ -149,6 +157,7 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
     } catch (err) {
       const categorized = categorizeError(err);
       setError(categorized.message);
+      setErrorAction(categorized.action);
     } finally {
       setIsSubmitting(false);
     }
@@ -199,7 +208,22 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
             {language === 'es' ? 'Otra ronda' : 'Another round'}
           </button>
         </div>
-        {error && <div className="mt-4"><ErrorMessage message={error} variant="block" /></div>}
+        {error && (
+          <div className="mt-4">
+            <ErrorMessage message={error} variant="block" />
+            {errorAction === 'upgrade' && (
+              <div className="mt-3 flex gap-3 justify-center">
+                <Link href="/settings" className="font-mono text-[10px] tracking-[0.15em] text-j-accent underline uppercase">
+                  Agregar API keys
+                </Link>
+                <button onClick={() => setShowPricing(true)} className="font-mono text-[10px] tracking-[0.15em] text-j-accent underline uppercase">
+                  Upgrade a Pro
+                </button>
+                <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -237,7 +261,22 @@ export function QuickReviewSession({ language }: QuickReviewSessionProps) {
         isSubmitting={isSubmitting}
       />
 
-      {error && <div className="mt-4"><ErrorMessage message={error} variant="block" /></div>}
+      {error && (
+        <div className="mt-4">
+          <ErrorMessage message={error} variant="block" />
+          {errorAction === 'upgrade' && (
+            <div className="mt-3 flex gap-3">
+              <Link href="/settings" className="font-mono text-[10px] tracking-[0.15em] text-j-accent underline uppercase">
+                Agregar API keys
+              </Link>
+              <button onClick={() => setShowPricing(true)} className="font-mono text-[10px] tracking-[0.15em] text-j-accent underline uppercase">
+                Upgrade a Pro
+              </button>
+              <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

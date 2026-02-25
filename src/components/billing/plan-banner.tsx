@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import { useState } from 'react';
+import { PricingModal } from '@/components/billing/pricing-modal';
 
 interface PlanBannerProps {
   status: string;
@@ -9,6 +10,7 @@ interface PlanBannerProps {
 }
 
 export function PlanBanner({ status, used, limit }: PlanBannerProps) {
+  const [showPricing, setShowPricing] = useState(false);
   const isActive = status === 'active';
   const percent = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
   const isLow = percent >= 80;
@@ -29,12 +31,13 @@ export function PlanBanner({ status, used, limit }: PlanBannerProps) {
       {!isActive && (
         <>
           <span className="text-j-border">·</span>
-          <Link
-            href="/pricing"
+          <button
+            onClick={() => setShowPricing(true)}
             className="text-j-accent hover:underline"
           >
             Upgrade
-          </Link>
+          </button>
+          <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
         </>
       )}
     </div>

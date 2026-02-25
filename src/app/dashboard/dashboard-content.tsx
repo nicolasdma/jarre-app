@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowUp } from 'lucide-react';
+import { PricingModal } from '@/components/billing/pricing-modal';
 import type { Language } from '@/lib/translations';
 import { PipelineCourseCard, type PipelineCourseData } from './pipeline-course-card';
+import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
 
 const STAGE_LABELS: Record<string, Record<string, string>> = {
   es: {
@@ -53,6 +55,8 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
   const [totalStages, setTotalStages] = useState(6);
   const [error, setError] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
+  const [needsUpgrade, setNeedsUpgrade] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
   const [resourceId, setResourceId] = useState<string | null>(null);
 
   const isProcessing = status === 'submitting' || status === 'polling';
@@ -66,9 +70,10 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
     setStatus('submitting');
     setError(null);
     setNeedsAuth(false);
+    setNeedsUpgrade(false);
 
     try {
-      const res = await fetch('/api/pipeline', {
+      const res = await fetchWithKeys('/api/pipeline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: trimmed }),
@@ -76,6 +81,15 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
 
       if (res.status === 401) {
         setNeedsAuth(true);
+        setStatus('failed');
+        return;
+      }
+
+      if (res.status === 429) {
+        setNeedsUpgrade(true);
+        setError(language === 'es'
+          ? 'Alcanzaste tu limite mensual de tokens.'
+          : 'Monthly token limit exceeded.');
         setStatus('failed');
         return;
       }
@@ -109,7 +123,7 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`/api/pipeline/${jobId}`);
+        const res = await fetchWithKeys(`/api/pipeline/${jobId}`);
         if (!res.ok) return;
 
         const data = await res.json();
@@ -146,6 +160,7 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
     setJobId(null);
     setError(null);
     setNeedsAuth(false);
+    setNeedsUpgrade(false);
     setUrl('');
     setStagesCompleted(0);
     setCurrentStage(null);
@@ -222,8 +237,28 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
           </div>
         )}
 
+        {/* Budget exceeded */}
+        {status === 'failed' && needsUpgrade && (
+          <div className="mt-4 px-2 flex items-center gap-3">
+            <p className="text-sm text-j-error flex-1">{error}</p>
+            <Link
+              href="/settings"
+              className="font-mono text-[11px] tracking-[0.15em] uppercase text-j-accent hover:underline shrink-0"
+            >
+              {language === 'es' ? 'API keys' : 'API keys'}
+            </Link>
+            <button
+              onClick={() => setShowPricing(true)}
+              className="font-mono text-[11px] tracking-[0.15em] uppercase text-j-accent hover:underline shrink-0"
+            >
+              Upgrade
+            </button>
+            <PricingModal isOpen={showPricing} onClose={() => setShowPricing(false)} />
+          </div>
+        )}
+
         {/* Error */}
-        {status === 'failed' && !needsAuth && error && (
+        {status === 'failed' && !needsAuth && !needsUpgrade && error && (
           <div className="mt-4 px-2 flex items-center gap-3">
             <p className="text-sm text-j-error flex-1">{error}</p>
             <button
