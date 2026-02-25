@@ -163,6 +163,7 @@ function StickyHeader({
 
   useEffect(() => {
     if (currentStep !== 'learn') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: reset scroll state when leaving learn step
       setScrolledPast200(false);
       return;
     }

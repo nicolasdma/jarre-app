@@ -45,6 +45,7 @@ export function ByokProvider({
 
   useEffect(() => {
     if (!IS_MANAGED || !userId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: skip loading when not managed
       setLoading(false);
       return;
     }

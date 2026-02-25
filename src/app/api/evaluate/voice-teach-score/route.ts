@@ -29,8 +29,6 @@ import { checkTokenBudget } from '@/lib/api/rate-limit';
 const log = createLogger('Evaluate/VoiceTeachScore');
 
 const MIN_USER_TURNS = 3;
-const TEACH_PROMPT_VERSION = 'teach-v1.0.0';
-
 export const POST = withAuth(async (request, { supabase, user, byokKeys }) => {
   try {
     const budget = await checkTokenBudget(supabase, user.id, !!byokKeys.deepseek);

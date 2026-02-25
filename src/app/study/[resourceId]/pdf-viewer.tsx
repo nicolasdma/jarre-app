@@ -27,6 +27,7 @@ function getProxyUrl(url: string, startPage?: number | null, endPage?: number | 
 export function PdfViewer({ url, title, language, startPage, endPage }: PdfViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pdfjs-dist generic document type
   const [pdf, setPdf] = useState<any>(null);
   const [scale, setScale] = useState(2.3);
   const [loading, setLoading] = useState(true);
@@ -125,6 +126,7 @@ export function PdfViewer({ url, title, language, startPage, endPage }: PdfViewe
     for (let i = 1; i <= pdf.numPages; i++) {
       renderPage(i);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pdf, scale]);
 
   // Re-render pages when renderedPages is cleared (scale change)

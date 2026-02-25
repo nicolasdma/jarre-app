@@ -21,7 +21,6 @@ import type {
   ConceptOutput,
   ResolveOutput,
   WriteOutput,
-  ActivateData,
 } from '../types';
 
 const log = createLogger('Pipeline:WriteDB');

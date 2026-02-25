@@ -48,13 +48,14 @@ export function HighlightLayer({
 
   useEffect(() => {
     const container = containerRef.current;
+    const currentUsesCSS = usesCSS.current;
     if (!container || annotations.length === 0) {
-      cleanup(usesCSS.current, marksRef.current);
+      cleanup(currentUsesCSS, marksRef.current);
       marksRef.current = [];
       return;
     }
 
-    if (usesCSS.current) {
+    if (currentUsesCSS) {
       ensureHighlightCSS();
       applyCSSHighlights(container, annotations, activeAnnotationId);
     } else {
@@ -63,7 +64,7 @@ export function HighlightLayer({
     }
 
     return () => {
-      cleanup(usesCSS.current, marksRef.current);
+      cleanup(currentUsesCSS, marksRef.current);
       marksRef.current = [];
     };
   }, [annotations, containerRef, activeAnnotationId, onAnnotationClick]);

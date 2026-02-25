@@ -55,7 +55,7 @@ export const POST = withAuth<{ projectId: string }>(async (request, { supabase, 
     }
 
     // If completing, advance mapped concepts to level 2
-    let advancedConcepts: string[] = [];
+    const advancedConcepts: string[] = [];
 
     if (status === 'completed') {
       const { data: mappedConcepts } = await supabase

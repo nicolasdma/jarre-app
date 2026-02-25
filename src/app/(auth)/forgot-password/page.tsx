@@ -29,7 +29,7 @@ function detectLanguage(): Lang {
 }
 
 export default function ForgotPasswordPage() {
-  const language = useMemo(detectLanguage, []);
+  const language = useMemo(() => detectLanguage(), []);
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

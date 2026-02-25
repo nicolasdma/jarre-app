@@ -33,7 +33,7 @@ export const GET = withAuth<{ id: string }>(async (_request, { supabase, user, p
     .eq('user_resource_id', id);
 
   // Fetch mastery levels for linked concepts
-  const conceptIds = (links || []).map((l: any) => l.concept_id);
+  const conceptIds = (links || []).map((l: { concept_id: string }) => l.concept_id);
   let progressMap: Record<string, number> = {};
   if (conceptIds.length > 0) {
     const { data: progress } = await supabase
@@ -43,7 +43,7 @@ export const GET = withAuth<{ id: string }>(async (_request, { supabase, user, p
       .in('concept_id', conceptIds);
 
     if (progress) {
-      progressMap = progress.reduce((acc: Record<string, number>, p: any) => {
+      progressMap = progress.reduce((acc: Record<string, number>, p: { concept_id: string; level: string }) => {
         acc[p.concept_id] = parseInt(p.level);
         return acc;
       }, {});
@@ -52,7 +52,7 @@ export const GET = withAuth<{ id: string }>(async (_request, { supabase, user, p
 
   return jsonOk({
     resource,
-    links: (links || []).map((l: any) => ({
+    links: (links || []).map((l: { concept_id: string; concept?: { name: string; definition: string } }) => ({
       ...l,
       conceptName: l.concept?.name || 'Unknown',
       conceptDefinition: l.concept?.definition || '',

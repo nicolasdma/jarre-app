@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
@@ -39,8 +38,7 @@ function detectLanguage(): Lang {
 }
 
 export default function SignupPage() {
-  const router = useRouter();
-  const language = useMemo(detectLanguage, []);
+  const language = useMemo(() => detectLanguage(), []);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

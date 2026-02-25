@@ -4,7 +4,7 @@ import type { StorageBackend, BackendState } from './interface.js';
 import { Memtable, DEFAULT_FLUSH_THRESHOLD } from './memtable.js';
 import { writeSSTable, SSTableReader, type SSTableMeta } from './sstable.js';
 import { WriteAheadLog } from './wal.js';
-import { ensureDir, fileSize } from '../utils/file-io.js';
+import { ensureDir } from '../utils/file-io.js';
 
 /**
  * LSM-Tree Storage Backend (DDIA Ch3 — Log-Structured Merge Tree)

@@ -34,6 +34,7 @@ export function PricingModal({ isOpen, onClose }: PricingModalProps) {
 
   useEffect(() => {
     if (!isOpen) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: reset loading state when modal opens
     setLoading(true);
     fetch('/api/billing/status')
       .then((res) => (res.ok ? res.json() : { subscriptionStatus: 'free' }))

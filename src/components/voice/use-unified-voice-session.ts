@@ -24,7 +24,7 @@ import {
 } from '@/lib/llm/voice-unified-prompt';
 import { formatMemoryForPrompt, type LearnerConceptMemory } from '@/lib/learner-memory';
 import { TUTOR_TOOLS } from '@/lib/voice/tool-declarations';
-import { handleToolCall, type ToolAction, type ToolDispatch } from '@/lib/voice/tool-handler';
+import { handleToolCall, type ToolDispatch } from '@/lib/voice/tool-handler';
 import { createLogger } from '@/lib/logger';
 import type { Language } from '@/lib/translations';
 import type { FunctionCall } from '@google/genai';
@@ -218,7 +218,6 @@ export function useUnifiedVoiceSession(params: UseUnifiedVoiceSessionParams): Un
     resourceId,
     concepts,
     masteryLevel,
-    resourceTitle,
     sectionContent,
     sectionTitle,
     userResourceId,
@@ -503,7 +502,7 @@ export function useUnifiedVoiceSession(params: UseUnifiedVoiceSessionParams): Un
   }> => {
     let learnerMemory: LearnerConceptMemory[] = [];
     let summary: string | undefined;
-    let staleness: ContextStaleness = 'stale';
+    const staleness: ContextStaleness = 'stale';
     let modeParams: ModeParams;
     let initialMsg: string;
     let cIds: string[] = [];
@@ -658,7 +657,7 @@ export function useUnifiedVoiceSession(params: UseUnifiedVoiceSessionParams): Un
     }
 
     return { instruction, initialMsg, conceptIds: cIds };
-  }, [mode, language, concepts, masteryLevel, resourceTitle, sectionContent, sectionTitle, userResourceId, debateTopic, conceptForTeach]);
+  }, [mode, language, concepts, masteryLevel, userResourceId, debateTopic, conceptForTeach]);
 
   // ---- Start ----
 
@@ -695,7 +694,7 @@ export function useUnifiedVoiceSession(params: UseUnifiedVoiceSessionParams): Un
       setSessionError(msg);
       setState('error');
     }
-  }, [mode, fetchContextAndBuildPrompt, voiceSession]);
+  }, [mode, fetchContextAndBuildPrompt, voiceSession, concepts?.length, resourceId]);
 
   // ---- Stop ----
 

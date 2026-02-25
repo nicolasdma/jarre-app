@@ -92,6 +92,7 @@ export function useSpeechEngine(): SpeechEngine {
   const genRef = useRef(0);
   const currentChunkRef = useRef('');
   const charIndexRef = useRef(0);
+  const processQueueRef = useRef<() => void>(() => {});
 
   // ---- Voice selection ----
 
@@ -117,6 +118,7 @@ export function useSpeechEngine(): SpeechEngine {
   useEffect(() => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: select voice on mount
     selectVoice();
     speechSynthesis.addEventListener('voiceschanged', selectVoice);
 
@@ -129,7 +131,7 @@ export function useSpeechEngine(): SpeechEngine {
   // ---- Chunk-level speech with generation guard ----
 
   const speakChunk = useCallback(
-    (text: string, onChunkEnd: () => void) => {
+    (text: string) => {
       const gen = genRef.current;
       currentChunkRef.current = text;
       charIndexRef.current = 0;
@@ -147,14 +149,14 @@ export function useSpeechEngine(): SpeechEngine {
 
       utterance.onend = () => {
         if (gen !== genRef.current) return;
-        onChunkEnd();
+        processQueueRef.current();
       };
       utterance.onerror = (e) => {
         if (gen !== genRef.current) return;
         if (e.error !== 'interrupted' && e.error !== 'canceled') {
           log.warn('Speech error:', e.error);
         }
-        onChunkEnd();
+        processQueueRef.current();
       };
 
       speechSynthesis.speak(utterance);
@@ -184,8 +186,13 @@ export function useSpeechEngine(): SpeechEngine {
     }
 
     const next = queueRef.current.shift()!;
-    speakChunk(next, processQueue);
+    speakChunk(next);
   }, [speakChunk]);
+
+  // Keep ref in sync so speakChunk callbacks can call processQueue without circular dependency
+  useEffect(() => {
+    processQueueRef.current = processQueue;
+  }, [processQueue]);
 
   // ---- Text chunking ----
 
@@ -268,7 +275,7 @@ export function useSpeechEngine(): SpeechEngine {
       : chunk;
 
     if (remaining) {
-      speakChunk(remaining, processQueue);
+      speakChunk(remaining);
     } else {
       processQueue();
     }

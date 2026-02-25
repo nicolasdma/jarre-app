@@ -11,7 +11,7 @@ const log = createLogger('Review/ByResource');
  * Returns ALL active question_bank questions for concepts covered by a resource.
  * Questions are matched via resource_sections (concept_id) and ordered by concept + difficulty.
  */
-export const GET = withAuth(async (request, { supabase, user }) => {
+export const GET = withAuth(async (request, { supabase }) => {
   try {
     const { searchParams } = new URL(request.url);
     const resourceId = searchParams.get('resourceId');

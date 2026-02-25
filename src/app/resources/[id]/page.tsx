@@ -76,7 +76,7 @@ export default async function UserResourcePage({ params }: { params: Promise<{ i
     .eq('user_resource_id', id);
 
   // Fetch concept names and definitions
-  const conceptIds = (links || []).map((l: any) => l.concept_id);
+  const conceptIds = (links || []).map((l: { concept_id: string }) => l.concept_id);
   let conceptMap: Record<string, { name: string; definition: string }> = {};
   let progressMap: Record<string, number> = {};
 
@@ -86,13 +86,13 @@ export default async function UserResourcePage({ params }: { params: Promise<{ i
       supabase.from(TABLES.conceptProgress).select('concept_id, level').eq('user_id', user.id).in('concept_id', conceptIds),
     ]);
 
-    conceptMap = (concepts || []).reduce((acc: any, c: any) => {
+    conceptMap = (concepts || []).reduce((acc: Record<string, { name: string; definition: string }>, c: { id: string; name: string; canonical_definition: string }) => {
       acc[c.id] = { name: c.name, definition: c.canonical_definition };
       return acc;
     }, {});
 
-    progressMap = (progress || []).reduce((acc: any, p: any) => {
-      acc[p.concept_id] = parseInt(p.level);
+    progressMap = (progress || []).reduce((acc: Record<string, number>, p: { concept_id: string; level: string | number }) => {
+      acc[p.concept_id] = parseInt(String(p.level));
       return acc;
     }, {});
   }
@@ -209,7 +209,7 @@ export default async function UserResourcePage({ params }: { params: Promise<{ i
               <span className="ml-2 text-j-accent">{(links || []).length}</span>
             </p>
             <div className="space-y-3">
-              {(links || []).map((link: any) => {
+              {(links || []).map((link: { id: string; concept_id: string; relationship: string; relevance_score: number; extracted_concept_name: string; explanation: string; source: string }) => {
                 const concept = conceptMap[link.concept_id];
                 const mastery = progressMap[link.concept_id] || 0;
 

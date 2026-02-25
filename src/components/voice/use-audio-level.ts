@@ -18,6 +18,7 @@ export function useAudioLevel(stream: MediaStream | null): number {
 
   useEffect(() => {
     if (!stream) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLevel(0);
       prevLevelRef.current = 0;
       return;

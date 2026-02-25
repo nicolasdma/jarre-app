@@ -255,7 +255,6 @@ QuestionCard.displayName = 'QuestionCard';
 export function PracticeEvalStep({
   language,
   resourceId,
-  conceptIds,
   initialState,
   onStateChange,
   onComplete,
@@ -375,7 +374,7 @@ export function PracticeEvalStep({
         });
       }
     },
-    [evalState, scaffoldLevel, updateState]
+    [evalState, scaffoldLevel, updateState, language]
   );
 
   const answeredCount = Object.keys(evalState.answers).length;

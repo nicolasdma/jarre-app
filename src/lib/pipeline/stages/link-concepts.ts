@@ -66,8 +66,6 @@ export async function linkConceptsStage(params: {
 
   // Step 3: Build concept output
   // Linked concepts come from curriculum
-  const linkedConceptIds = new Set(linking.links.map((l) => l.curriculumConceptId));
-
   const concepts: ConceptOutput['concepts'] = [];
   const resourceConcepts: ConceptOutput['resourceConcepts'] = [];
 

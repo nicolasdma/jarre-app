@@ -179,7 +179,7 @@ export async function saveEvaluationResults({
         evaluationId: evaluation?.id,
       },
     })
-    .then(({ error: logError }: { error: any }) => {
+    .then(({ error: logError }: { error: { message?: string } | null }) => {
       if (logError) log.error('Failed to log consumption:', logError.message);
     });
 

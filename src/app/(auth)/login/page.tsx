@@ -45,7 +45,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = sanitizeRedirect(searchParams.get('redirect'));
-  const language = useMemo(detectLanguage, []);
+  const language = useMemo(() => detectLanguage(), []);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

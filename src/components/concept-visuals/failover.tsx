@@ -40,6 +40,7 @@ export function FailoverVisual() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: reset countdown when phase changes
     if (phase !== 'detecting') { setCountdown(3); return; }
     const t1 = setTimeout(() => setCountdown(2), 800);
     const t2 = setTimeout(() => setCountdown(1), 1600);

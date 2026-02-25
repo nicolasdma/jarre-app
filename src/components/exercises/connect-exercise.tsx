@@ -79,7 +79,7 @@ export function ConnectExerciseComponent({ exercise, onSubmit }: Props) {
           style={{ minHeight: 280 }}
         >
           {/* Drawn connections */}
-          {connections.map(([fromId, toId], i) => {
+          {connections.map(([fromId, toId]) => {
             const from = nodeMap.get(fromId);
             const to = nodeMap.get(toId);
             if (!from || !to) return null;

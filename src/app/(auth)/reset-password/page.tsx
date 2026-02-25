@@ -31,7 +31,7 @@ function detectLanguage(): Lang {
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const language = useMemo(detectLanguage, []);
+  const language = useMemo(() => detectLanguage(), []);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

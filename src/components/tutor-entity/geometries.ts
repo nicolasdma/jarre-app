@@ -451,9 +451,9 @@ export function computeNormal(
   const dPy = (_nPhiP.y - _nCenter.y) / NORMAL_EPS;
   const dPz = (_nPhiP.z - _nCenter.z) / NORMAL_EPS;
 
-  let nx = dTy * dPz - dTz * dPy;
-  let ny = dTz * dPx - dTx * dPz;
-  let nz = dTx * dPy - dTy * dPx;
+  const nx = dTy * dPz - dTz * dPy;
+  const ny = dTz * dPx - dTx * dPz;
+  const nz = dTx * dPy - dTy * dPx;
 
   const len = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
   out.x = nx / len;

@@ -31,11 +31,11 @@ export default async function JournalPage() {
 
   // Fetch resource names for entries that reference resources
   const resourceIds = (entries || [])
-    .filter((e: any) => e.resource_id)
-    .map((e: any) => e.resource_id);
+    .filter((e: { resource_id?: string }) => e.resource_id)
+    .map((e: { resource_id: string }) => e.resource_id);
   const userResourceIds = (entries || [])
-    .filter((e: any) => e.user_resource_id)
-    .map((e: any) => e.user_resource_id);
+    .filter((e: { user_resource_id?: string }) => e.user_resource_id)
+    .map((e: { user_resource_id: string }) => e.user_resource_id);
 
   let resourceNames: Record<string, string> = {};
   let userResourceNames: Record<string, { title: string; type: string }> = {};
@@ -45,7 +45,7 @@ export default async function JournalPage() {
       .from(TABLES.resources)
       .select('id, title')
       .in('id', resourceIds);
-    resourceNames = (resources || []).reduce((acc: any, r: any) => {
+    resourceNames = (resources || []).reduce((acc: Record<string, string>, r: { id: string; title: string }) => {
       acc[r.id] = r.title;
       return acc;
     }, {});
@@ -56,7 +56,7 @@ export default async function JournalPage() {
       .from(TABLES.userResources)
       .select('id, title, type')
       .in('id', userResourceIds);
-    userResourceNames = (userResources || []).reduce((acc: any, r: any) => {
+    userResourceNames = (userResources || []).reduce((acc: Record<string, { title: string; type: string }>, r: { id: string; title: string; type: string }) => {
       acc[r.id] = { title: r.title, type: r.type };
       return acc;
     }, {});
@@ -81,6 +81,7 @@ export default async function JournalPage() {
   };
 
   // Group entries by date
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase generic row type
   const byDate: Record<string, any[]> = {};
   for (const entry of (entries || [])) {
     const date = new Date(entry.created_at).toLocaleDateString(lang === 'es' ? 'es-AR' : 'en-US', {
@@ -122,7 +123,7 @@ export default async function JournalPage() {
                   {date}
                 </p>
                 <div className="space-y-2 border-l-2 border-j-border pl-4 sm:pl-6 ml-2">
-                  {dayEntries.map((entry: any) => {
+                  {dayEntries.map((entry: { id: string; event_type: string; resource_id?: string; user_resource_id?: string; notes?: string; metadata?: Record<string, unknown>; created_at: string }) => {
                     const icon = EVENT_ICONS[entry.event_type] || '\uD83D\uDCCC';
                     const label = EVENT_LABELS[entry.event_type]?.[lang] || entry.event_type;
                     const resourceTitle = entry.resource_id
@@ -173,7 +174,7 @@ export default async function JournalPage() {
                           )}
                           {entry.metadata?.score != null && (
                             <p className="text-xs text-j-accent mt-1">
-                              Score: {entry.metadata.score}%
+                              Score: {String(entry.metadata.score)}%
                             </p>
                           )}
                         </div>

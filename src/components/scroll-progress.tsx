@@ -34,6 +34,7 @@ export function ScrollProgress({ containerRef }: ScrollProgressProps) {
   useEffect(() => {
     const target = containerRef?.current ?? window;
     target.addEventListener('scroll', handleScroll, { passive: true });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: initialize progress on mount
     updateProgress();
 
     return () => {

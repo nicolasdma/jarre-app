@@ -11,6 +11,7 @@ interface InsightSuggestion {
   title: string;
   description: string;
   action_type: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic payload shape from API
   action_payload: Record<string, any>;
   priority: number;
 }

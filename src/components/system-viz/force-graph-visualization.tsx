@@ -437,11 +437,7 @@ export function ForceGraphVisualization({
     }
 
     if (!newId) {
-      // Hover ended — restore only the previously dimmed nodes
-      prevBright.forEach((id) => {
-        // These were bright — already at base, skip
-      });
-      // Restore all dimmed nodes to base
+      // Hover ended — restore all dimmed nodes to base
       nodeMaterialsMap.current.forEach((mats, nodeId) => {
         if (!prevBright.has(nodeId)) {
           // Was dimmed, restore

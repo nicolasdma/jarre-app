@@ -771,7 +771,6 @@ export function ReviewSession({ dueCount, totalCards, language, reviewedToday }:
 
   // ==== FEEDBACK DISPLAY ====
   if (phase === 'feedback' && currentResult) {
-    const card = cards[currentIndex];
     const isLast = currentIndex + 1 >= cards.length;
 
     return (

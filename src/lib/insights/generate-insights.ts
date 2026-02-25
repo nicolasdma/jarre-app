@@ -64,15 +64,15 @@ export async function generateMasteryCatalystInsights(
   if (!links || links.length === 0) return [];
 
   // Fetch concept progress for linked concepts
-  const conceptIds = links.map((l: any) => l.concept_id);
+  const conceptIds = links.map((l: { concept_id: string }) => l.concept_id);
   const { data: progress } = await supabase
     .from(TABLES.conceptProgress)
     .select('concept_id, level')
     .eq('user_id', userId)
     .in('concept_id', conceptIds);
 
-  const progressMap = (progress || []).reduce((acc: Record<string, number>, p: any) => {
-    acc[p.concept_id] = parseInt(p.level) || 0;
+  const progressMap = (progress || []).reduce((acc: Record<string, number>, p: { concept_id: string; level: string | number }) => {
+    acc[p.concept_id] = parseInt(String(p.level)) || 0;
     return acc;
   }, {});
 
@@ -82,7 +82,7 @@ export async function generateMasteryCatalystInsights(
     .select('id, name')
     .in('id', conceptIds);
 
-  const nameMap = (concepts || []).reduce((acc: Record<string, string>, c: any) => {
+  const nameMap = (concepts || []).reduce((acc: Record<string, string>, c: { id: string; name: string }) => {
     acc[c.id] = c.name;
     return acc;
   }, {});
@@ -139,7 +139,7 @@ export async function generateGapDetectionInsights(
     .from(TABLES.concepts)
     .select('id, name');
 
-  const nameMap = (concepts || []).reduce((acc: Record<string, string>, c: any) => {
+  const nameMap = (concepts || []).reduce((acc: Record<string, string>, c: { id: string; name: string }) => {
     acc[c.id] = c.name;
     return acc;
   }, {});
@@ -148,7 +148,7 @@ export async function generateGapDetectionInsights(
   if (staleProgress && staleProgress.length > 0) {
     const staleNames = staleProgress
       .slice(0, 5)
-      .map((p: any) => nameMap[p.concept_id] || 'Unknown');
+      .map((p: { concept_id: string }) => nameMap[p.concept_id] || 'Unknown');
 
     suggestions.push({
       type: 'gap_detection',
@@ -157,8 +157,8 @@ export async function generateGapDetectionInsights(
         : `${staleNames.length} concepts need attention`,
       description: `${staleNames.join(', ')} — no evaluados en más de 2 semanas.`,
       actionType: 'review',
-      actionData: { conceptIds: staleProgress.map((p: any) => p.concept_id) },
-      conceptIds: staleProgress.map((p: any) => p.concept_id),
+      actionData: { conceptIds: staleProgress.map((p: { concept_id: string }) => p.concept_id) },
+      conceptIds: staleProgress.map((p: { concept_id: string }) => p.concept_id),
       priority: 0.6,
     });
   }
@@ -169,13 +169,13 @@ export async function generateGapDetectionInsights(
     .select('concept_id, open_questions, misconceptions')
     .eq('user_id', userId);
 
-  const withQuestions = (memoryWithQuestions || []).filter((m: any) =>
+  const withQuestions = (memoryWithQuestions || []).filter((m: { concept_id: string; open_questions: string[] | null; misconceptions: string[] | null }) =>
     Array.isArray(m.open_questions) && m.open_questions.length >= 2
   );
 
   if (withQuestions.length > 0) {
-    const totalQuestions = withQuestions.reduce((sum: number, m: any) => sum + m.open_questions.length, 0);
-    const cIds = withQuestions.map((m: any) => m.concept_id);
+    const totalQuestions = withQuestions.reduce((sum: number, m: { open_questions: string[] }) => sum + m.open_questions.length, 0);
+    const cIds = withQuestions.map((m: { concept_id: string }) => m.concept_id);
     const cNames = cIds.map((id: string) => nameMap[id] || 'Unknown').slice(0, 3);
 
     suggestions.push({
@@ -190,14 +190,14 @@ export async function generateGapDetectionInsights(
   }
 
   // Concepts with unresolved misconceptions
-  const withMisconceptions = (memoryWithQuestions || []).filter((m: any) =>
+  const withMisconceptions = (memoryWithQuestions || []).filter((m: { concept_id: string; open_questions: string[] | null; misconceptions: string[] | null }) =>
     Array.isArray(m.misconceptions) && m.misconceptions.length >= 2
   );
 
   if (withMisconceptions.length > 0) {
-    const cIds = withMisconceptions.map((m: any) => m.concept_id);
+    const cIds = withMisconceptions.map((m: { concept_id: string }) => m.concept_id);
     const cNames = cIds.map((id: string) => nameMap[id] || 'Unknown').slice(0, 3);
-    const totalMisconceptions = withMisconceptions.reduce((sum: number, m: any) => sum + m.misconceptions.length, 0);
+    const totalMisconceptions = withMisconceptions.reduce((sum: number, m: { misconceptions: string[] }) => sum + m.misconceptions.length, 0);
 
     suggestions.push({
       type: 'gap_detection',
@@ -242,7 +242,7 @@ export async function generateDebateTopicInsights(
 
   if (!advancedProgress || advancedProgress.length < 2) return [];
 
-  const conceptIds = advancedProgress.map((p: any) => p.concept_id);
+  const conceptIds = advancedProgress.map((p: { concept_id: string }) => p.concept_id);
   const { data: concepts } = await supabase
     .from(TABLES.concepts)
     .select('id, name, definition')
@@ -251,7 +251,7 @@ export async function generateDebateTopicInsights(
   if (!concepts || concepts.length < 2) return [];
 
   const conceptList = concepts
-    .map((c: any) => `- ${c.id}: ${c.name} (${c.definition || 'no def'})`)
+    .map((c: { id: string; name: string; definition: string | null }) => `- ${c.id}: ${c.name} (${c.definition || 'no def'})`)
     .join('\n');
 
   try {

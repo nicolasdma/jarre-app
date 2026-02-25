@@ -87,17 +87,17 @@ export function TutorEntity({
 
   // Keep voiceState in a ref so the animate callback always reads the latest
   const voiceStateRef = useRef(voiceState);
-  voiceStateRef.current = voiceState;
+  useEffect(() => { voiceStateRef.current = voiceState; }, [voiceState]);
 
   // Frequency bands from Gemini playback audio
   const frequencyBands = useTutorFrequency(playbackAnalyser ?? null);
   const frequencyBandsRef = useRef(frequencyBands);
-  frequencyBandsRef.current = frequencyBands;
+  useEffect(() => { frequencyBandsRef.current = frequencyBands; }, [frequencyBands]);
 
   // Mic audio level — user's voice
   const micLevel = useAudioLevel(micStream ?? null);
   const micLevelRef = useRef(micLevel);
-  micLevelRef.current = micLevel;
+  useEffect(() => { micLevelRef.current = micLevel; }, [micLevel]);
 
   const isVoiceActive = voiceState !== undefined;
 
@@ -107,6 +107,7 @@ export function TutorEntity({
     return () => setVoiceActive(false);
   }, [isVoiceActive]);
 
+  const animateRef = useRef<() => void>(() => {});
   const animate = useCallback(() => {
     const glowCanvas = glowCanvasRef.current;
     const sharpCanvas = sharpCanvasRef.current;
@@ -119,7 +120,7 @@ export function TutorEntity({
     const elapsed = now - lastFrameRef.current;
 
     if (elapsed < FRAME_INTERVAL) {
-      rafRef.current = requestAnimationFrame(animate);
+      rafRef.current = requestAnimationFrame(() => animateRef.current?.());
       return;
     }
 
@@ -219,8 +220,9 @@ export function TutorEntity({
     // Debug: update geometry name label
     setDebugName(getCurrentGeometryName());
 
-    rafRef.current = requestAnimationFrame(animate);
+    rafRef.current = requestAnimationFrame(() => animateRef.current?.());
   }, [hovered]);
+  useEffect(() => { animateRef.current = animate; }, [animate]);
 
   useEffect(() => {
     const container = containerRef.current;

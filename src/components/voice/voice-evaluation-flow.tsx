@@ -248,7 +248,6 @@ function ConsolidationSection({
 export function VoiceEvaluationFlow({
   resource,
   concepts,
-  userId: _userId,
   language,
   onCancel,
   onSwitchToText,

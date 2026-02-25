@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, memo } from 'react';
 import { AnnotatedContent } from './annotated-content';
 import { t, type Language } from '@/lib/translations';
-import type { ReviewSubmitResponse, InlineQuiz, VideoSegment, Exercise, ExerciseResult } from '@/types';
+import type { ReviewSubmitResponse, InlineQuiz, VideoSegment, Exercise } from '@/types';
 import { useWhisper } from '@/lib/whisper/whisper-context';
 import type { SectionState } from '@/lib/learn-progress';
 import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
@@ -307,7 +307,6 @@ export const ConceptSection = memo(function ConceptSection({
                 placeholder={t('review.answerPlaceholder', language)}
                 rows={3}
                 className="w-full border border-j-border-input bg-j-bg-white p-3 text-sm text-j-text placeholder-j-text-tertiary focus:outline-none focus:border-j-accent resize-none"
-                // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional: focus answer field immediately when pre-reading question appears
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && e.metaKey) handlePreSubmit();
@@ -470,7 +469,6 @@ export const ConceptSection = memo(function ConceptSection({
                 placeholder={t('review.answerPlaceholder', language)}
                 rows={3}
                 className="w-full border border-j-border-input bg-j-bg-white p-3 text-sm text-j-text placeholder-j-text-tertiary focus:outline-none focus:border-j-accent resize-none"
-                // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional: focus answer field immediately when post-reading question appears
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && e.metaKey && postAnswer.trim()) {

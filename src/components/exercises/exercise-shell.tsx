@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Exercise, ExerciseResult } from '@/types';
 import { SequenceExerciseComponent } from './sequence-exercise';
 import { LabelExerciseComponent } from './label-exercise';
@@ -20,7 +20,11 @@ export function ExerciseShell({ exercises, onAllComplete, language }: ExerciseSh
   const [currentIndex, setCurrentIndex] = useState(0);
   const [result, setResult] = useState<ExerciseResult | null>(null);
   const [results, setResults] = useState<ExerciseResult[]>([]);
-  const startTimeRef = useRef(Date.now());
+  const startTimeRef = useRef(0);
+
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+  }, []);
 
   const exercise = exercises[currentIndex];
 

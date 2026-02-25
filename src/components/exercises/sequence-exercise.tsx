@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -56,17 +56,15 @@ function SortableStep({ id, text }: { id: string; text: string }) {
 }
 
 export function SequenceExerciseComponent({ exercise, onSubmit }: Props) {
-  // Shuffle initial order
-  const shuffled = useMemo(() => {
-    const items = [...exercise.steps];
-    for (let i = items.length - 1; i > 0; i--) {
+  // Shuffle initial order (lazy initializer avoids impure call during render)
+  const [items, setItems] = useState(() => {
+    const shuffled = [...exercise.steps];
+    for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [items[i], items[j]] = [items[j], items[i]];
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    return items;
-  }, [exercise.steps]);
-
-  const [items, setItems] = useState(shuffled);
+    return shuffled;
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

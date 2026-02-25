@@ -45,13 +45,13 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
   ]);
 
   // Build concept name/phase map
-  const conceptMap = (conceptsResult.data || []).reduce((acc: Record<string, { name: string; phase: number }>, c: any) => {
-    acc[c.id] = { name: c.name, phase: parseInt(c.phase) || 0 };
+  const conceptMap = (conceptsResult.data || []).reduce((acc: Record<string, { name: string; phase: number }>, c: { id: string; name: string; phase: number }) => {
+    acc[c.id] = { name: c.name, phase: parseInt(String(c.phase)) || 0 };
     return acc;
-  }, {});
+  }, {} as Record<string, { name: string; phase: number }>);
 
   // Build concept progress with names
-  const conceptProgress = (progressResult.data || []).map((p: any) => ({
+  const conceptProgress = (progressResult.data || []).map((p: { concept_id: string; level: string }) => ({
     conceptId: p.concept_id,
     conceptName: conceptMap[p.concept_id]?.name || p.concept_id,
     level: parseInt(p.level) || 0,
@@ -60,22 +60,23 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
 
   // Build recent activity
   // Fetch resource/user_resource titles for activity entries
-  const resourceIds = (activityResult.data || []).filter((e: any) => e.resource_id).map((e: any) => e.resource_id);
-  const userResourceIds = (activityResult.data || []).filter((e: any) => e.user_resource_id).map((e: any) => e.user_resource_id);
+  const activityEntries = activityResult.data || [];
+  const resourceIds = activityEntries.filter((e: { resource_id?: string }) => e.resource_id).map((e: { resource_id?: string }) => e.resource_id);
+  const userResourceIds = activityEntries.filter((e: { user_resource_id?: string }) => e.user_resource_id).map((e: { user_resource_id?: string }) => e.user_resource_id);
 
   let resourceNames: Record<string, string> = {};
   let userResourceNames: Record<string, { title: string; type: string }> = {};
 
   if (resourceIds.length > 0) {
     const { data } = await supabase.from(TABLES.resources).select('id, title').in('id', resourceIds);
-    resourceNames = (data || []).reduce((acc: any, r: any) => { acc[r.id] = r.title; return acc; }, {});
+    resourceNames = (data || []).reduce((acc: Record<string, string>, r: { id: string; title: string }) => { acc[r.id] = r.title; return acc; }, {} as Record<string, string>);
   }
   if (userResourceIds.length > 0) {
     const { data } = await supabase.from(TABLES.userResources).select('id, title, type').in('id', userResourceIds);
-    userResourceNames = (data || []).reduce((acc: any, r: any) => { acc[r.id] = { title: r.title, type: r.type }; return acc; }, {});
+    userResourceNames = (data || []).reduce((acc: Record<string, { title: string; type: string }>, r: { id: string; title: string; type: string }) => { acc[r.id] = { title: r.title, type: r.type }; return acc; }, {} as Record<string, { title: string; type: string }>);
   }
 
-  const recentActivity = (activityResult.data || []).map((e: any) => {
+  const recentActivity = activityEntries.map((e: { resource_id?: string; user_resource_id?: string; event_type: string; concepts_touched?: string[]; created_at: string }) => {
     const title = e.resource_id
       ? resourceNames[e.resource_id] || 'Unknown'
       : e.user_resource_id
@@ -97,7 +98,7 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
   });
 
   // Build learner memory
-  const learnerMemory = (memoryResult.data || []).map((m: any) => ({
+  const learnerMemory = (memoryResult.data || []).map((m: { concept_id: string; misconceptions: unknown; strengths: unknown; escalation_level: string; analogies: unknown; open_questions: unknown; personal_examples: unknown; connections_made: unknown }) => ({
     conceptId: m.concept_id,
     misconceptions: Array.isArray(m.misconceptions) ? m.misconceptions : [],
     strengths: Array.isArray(m.strengths) ? m.strengths : [],
@@ -110,7 +111,7 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
 
   // Aggregate open questions
   const openQuestions = learnerMemory
-    .flatMap((m: any) => (m.openQuestions || []).map((q: string) => q))
+    .flatMap((m: { openQuestions: string[] }) => (m.openQuestions || []).map((q: string) => q))
     .filter((q: string) => q.length > 0);
 
   log.info(`Freeform context: ${conceptProgress.length} concepts, ${recentActivity.length} recent, ${learnerMemory.length} memories, ${openQuestions.length} open questions`);

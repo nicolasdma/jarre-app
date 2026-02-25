@@ -50,6 +50,7 @@ function VoiceSessionContent({
       autoStarted.current = true;
       session.start();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { state, transcript } = session;

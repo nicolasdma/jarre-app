@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 interface DeckCardProps {
   conceptId: string;
   conceptName: string;
@@ -30,8 +32,9 @@ export function DeckCard({
   nextDueAt,
   language,
 }: DeckCardProps) {
+  const [now] = useState(() => Date.now());
   const daysUntilDue = nextDueAt
-    ? Math.max(0, Math.ceil((new Date(nextDueAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    ? Math.max(0, Math.ceil((new Date(nextDueAt).getTime() - now) / (1000 * 60 * 60 * 24)))
     : null;
 
   if (!isUnlocked) {

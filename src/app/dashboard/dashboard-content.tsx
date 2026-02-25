@@ -65,7 +65,7 @@ interface DashboardContentProps {
   stats: DashboardStats;
 }
 
-export function DashboardContent({ courses, language, stats }: DashboardContentProps) {
+export function DashboardContent({ courses, language }: DashboardContentProps) {
   const router = useRouter();
   const [url, setUrl] = useState('');
 

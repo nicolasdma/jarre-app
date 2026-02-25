@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Mic, MicOff, Loader2, Clock, RefreshCw } from 'lucide-react';
-import { useUnifiedVoiceSession, type ExplorationResult } from '@/components/voice/use-unified-voice-session';
+import { useUnifiedVoiceSession } from '@/components/voice/use-unified-voice-session';
 import { useAudioLevel } from '@/components/voice/use-audio-level';
 import { useTutorFrequency } from '@/components/voice/use-tutor-frequency';
 import { VoiceAuraOverlay } from '@/components/voice/voice-aura';

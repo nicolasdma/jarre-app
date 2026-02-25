@@ -21,8 +21,8 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   let lang: Language = 'es';
-  let sectionCounts: Record<string, number> = {};
-  let evalStats: Record<string, { bestScore: number; evalCount: number }> = {};
+  const sectionCounts: Record<string, number> = {};
+  const evalStats: Record<string, { bestScore: number; evalCount: number }> = {};
 
   if (user) {
     // Fetch user profile (personal data — requires auth)

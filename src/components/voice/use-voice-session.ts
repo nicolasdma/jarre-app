@@ -813,6 +813,7 @@ export function useVoiceSession({
     setError(null);
     // NOTE: manual disconnect does NOT call onSessionComplete.
     // Only AI-driven completion (via transcript detection) unlocks the quiz.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stopMic, stopPlayback, stopTimer]);
 
   // Keep disconnectRef in sync so saveTranscript can call it

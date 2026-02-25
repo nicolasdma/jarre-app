@@ -91,7 +91,6 @@ interface ActivePhaseProps {
 }
 
 export function VoiceActivePhase({
-  language: _language,
   tutorState,
   elapsed,
   maxDurationSeconds,

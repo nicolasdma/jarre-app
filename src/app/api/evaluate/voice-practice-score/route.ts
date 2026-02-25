@@ -118,6 +118,7 @@ export const POST = withAuth(async (request, { supabase, user, byokKeys }) => {
       throw badRequest('No concepts found for this resource');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join returns dynamic shape
     const concepts = resourceConcepts.map((rc: any) => ({
       id: rc.concepts.id,
       name: rc.concepts.name,

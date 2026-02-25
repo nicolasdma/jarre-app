@@ -65,6 +65,7 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
     const conceptStats = new Map<string, { total: number; due: number; nextDue: string | null }>();
 
     for (const row of (questionSchedules || [])) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join returns dynamic shape
       const conceptId = (row.question_bank as any).concept_id;
       const stats = conceptStats.get(conceptId) || { total: 0, due: 0, nextDue: null };
       stats.total++;
@@ -78,6 +79,7 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
     }
 
     for (const row of (cardSchedules || [])) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join returns dynamic shape
       const conceptId = (row.concept_cards as any).concept_id;
       const stats = conceptStats.get(conceptId) || { total: 0, due: 0, nextDue: null };
       stats.total++;

@@ -16,8 +16,8 @@ const log = createLogger('XP');
  *
  * Accepts any Supabase client (server or client-side).
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function awardXP(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- accepts any Supabase client shape
   supabase: { rpc: (...args: any[]) => any },
   userId: string,
   amount: number,
