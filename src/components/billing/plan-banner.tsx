@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { PricingModal } from '@/components/billing/pricing-modal';
+import { useByok } from '@/components/contexts/byok-provider';
 
 interface PlanBannerProps {
   status: string;
@@ -11,10 +12,25 @@ interface PlanBannerProps {
 
 export function PlanBanner({ status, used, limit }: PlanBannerProps) {
   const [showPricing, setShowPricing] = useState(false);
+  const { hasKeys, loading: byokLoading } = useByok();
   const isActive = status === 'active';
   const percent = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
   const isLow = percent >= 80;
   const exceeded = used >= limit;
+
+  // Still loading BYOK state — don't flash wrong banner
+  if (byokLoading) return null;
+
+  // User has their own API keys — show BYOK status, no upgrade needed
+  if (hasKeys) {
+    return (
+      <div className="mb-6 flex items-center gap-3 text-[11px] font-mono text-j-text-tertiary">
+        <span className="uppercase tracking-[0.15em] text-j-accent">BYOK</span>
+        <span className="text-j-border">·</span>
+        <span>Unlimited</span>
+      </div>
+    );
+  }
 
   // Pro users who aren't low on tokens — don't show anything
   if (isActive && !isLow) return null;
