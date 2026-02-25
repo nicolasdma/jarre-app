@@ -36,11 +36,16 @@ export function UpgradeButton() {
       const res = await fetchWithKeys('/api/billing/checkout', {
         method: 'POST',
       });
+      if (!res.ok) throw new Error('Checkout failed');
       const { url } = await res.json();
-      if (url) window.location.href = url;
+      if (url) {
+        window.location.href = url;
+        return;
+      }
     } catch {
-      setLoading(false);
+      /* handled below */
     }
+    setLoading(false);
   }
 
   return (
@@ -59,11 +64,16 @@ export function ManageSubscriptionButton() {
       const res = await fetchWithKeys('/api/billing/portal', {
         method: 'POST',
       });
+      if (!res.ok) throw new Error('Portal request failed');
       const { url } = await res.json();
-      if (url) window.location.href = url;
+      if (url) {
+        window.location.href = url;
+        return;
+      }
     } catch {
-      setLoading(false);
+      /* handled below */
     }
+    setLoading(false);
   }
 
   return (

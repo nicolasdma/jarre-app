@@ -62,15 +62,25 @@ export async function POST(request: Request) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
-      if (session.customer && session.metadata?.user_id) {
+      const customerId = session.customer as string;
+      if (customerId) {
         const supabase = getAdminClient();
-        await supabase
-          .from('user_profiles')
-          .update({
-            stripe_customer_id: session.customer as string,
-            subscription_status: 'active',
-          })
-          .eq('id', session.metadata.user_id);
+        if (session.metadata?.user_id) {
+          // Primary: match by user_id from session metadata
+          await supabase
+            .from('user_profiles')
+            .update({
+              stripe_customer_id: customerId,
+              subscription_status: 'active',
+            })
+            .eq('id', session.metadata.user_id);
+        } else {
+          // Fallback: match by stripe_customer_id (set during checkout)
+          await supabase
+            .from('user_profiles')
+            .update({ subscription_status: 'active' })
+            .eq('stripe_customer_id', customerId);
+        }
       }
       break;
     }

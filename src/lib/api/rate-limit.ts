@@ -5,7 +5,7 @@
  * - Self-hosted: always allowed (no limits)
  * - BYOK users: always allowed (no limits)
  * - Managed free trial: 50K tokens/month
- * - Managed paid: 500K tokens/month
+ * - Managed paid: 2M tokens/month
  *
  * Queries the token_usage table for current month consumption.
  */
@@ -19,7 +19,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 const log = createLogger('RateLimit');
 
 const FREE_TRIAL_LIMIT = 50_000;
-const PAID_LIMIT = 500_000;
+const PAID_LIMIT = 2_000_000;
 
 export interface BudgetCheck {
   allowed: boolean;

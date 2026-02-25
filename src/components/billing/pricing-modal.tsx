@@ -16,9 +16,9 @@ const FREE_FEATURES = [
 ];
 
 const PRO_FEATURES = [
-  '500K tokens/month (~25-30 courses)',
+  '2M tokens/month (~100+ courses)',
   'Everything in Free',
-  '10x token budget',
+  '40x token budget',
   'Priority support',
   'Early access to new features',
 ];

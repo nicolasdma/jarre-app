@@ -41,6 +41,7 @@ export const POST = withAuth(async (request, { supabase, user }) => {
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
+    metadata: { user_id: user.id },
     success_url: `${origin}/profile?billing=success`,
     cancel_url: `${origin}/profile`,
   });

@@ -58,7 +58,7 @@ export default async function DashboardPage() {
       .lt('created_at', monthEnd.toISOString());
     monthlyUsed = (tokenRows || []).reduce((sum, r) => sum + (r.tokens || 0), 0);
   }
-  const monthlyLimit = subscriptionStatus === 'active' ? 500_000 : 50_000;
+  const monthlyLimit = subscriptionStatus === 'active' ? 2_000_000 : 50_000;
 
   // Voice minutes used this month
   let voiceMinutesUsed = 0;

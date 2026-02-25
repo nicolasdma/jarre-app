@@ -77,8 +77,8 @@ export default async function ProfilePage() {
     }
   }
 
-  // Monthly cap for managed mode (50K free, 500K paid)
-  const monthlyLimit = subscriptionStatus === 'active' ? 500_000 : 50_000;
+  // Monthly cap for managed mode (50K free, 2M paid)
+  const monthlyLimit = subscriptionStatus === 'active' ? 2_000_000 : 50_000;
   const usagePercent = Math.min(100, Math.round((currentMonth / monthlyLimit) * 100));
 
   // Sort categories by usage (descending)
@@ -174,7 +174,7 @@ export default async function ProfilePage() {
               <div className="border rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-2">Upgrade to Pro</h3>
                 <ul className="text-sm text-muted-foreground space-y-1 mb-4">
-                  <li>500K tokens/month (10x free tier)</li>
+                  <li>2M tokens/month (40x free tier)</li>
                   <li>Priority support</li>
                 </ul>
                 <UpgradeButton />
@@ -210,7 +210,7 @@ export default async function ProfilePage() {
             {subscriptionStatus === 'canceled' && (
               <div className="border rounded-lg p-6">
                 <p className="text-sm text-muted-foreground mb-4">
-                  Your subscription has been canceled. Reactivate to get 500K tokens/month.
+                  Your subscription has been canceled. Reactivate to get 2M tokens/month.
                 </p>
                 <UpgradeButton />
               </div>

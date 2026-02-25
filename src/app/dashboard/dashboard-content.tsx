@@ -269,7 +269,7 @@ export function DashboardContent({ courses, language }: DashboardContentProps) {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             disabled={isProcessing}
-            placeholder={language === 'es' ? 'Pega un link de YouTube. El resto es magia.' : "Paste a YouTube link. We'll do the rest."}
+            placeholder={language === 'es' ? 'Pega un link de YouTube. Nosotros hacemos el resto.' : "Paste a YouTube link. We'll do the rest."}
             className="w-full pl-5 pr-14 py-4 bg-j-surface border border-j-border rounded-full text-j-text text-base placeholder:text-j-text-tertiary focus:border-j-accent focus:outline-none disabled:opacity-60 transition-colors"
           />
           <button
