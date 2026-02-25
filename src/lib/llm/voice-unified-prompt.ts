@@ -4,6 +4,19 @@
  * Single entry point for all voice session system instructions.
  * Composes: BASE PERSONA + MODE INSTRUCTIONS + TOOL INSTRUCTIONS + CONTEXT
  *
+ * ⚠️  This is a large file (~900 lines) by design: it assembles the full
+ *     system instruction sent to Gemini Live for each voice session.
+ *     Structure:
+ *       1. Types & Zod schemas        (lines ~10-80)
+ *       2. Base persona text           (lines ~80-180)
+ *       3. Per-mode instruction blocks (lines ~180-700)
+ *       4. Tool declaration helpers    (lines ~700-800)
+ *       5. Top-level builder function  (lines ~800-end)
+ *
+ * NOTE: Voice prompts are currently written in Rioplatense Spanish.
+ *       To support other languages, parameterize the prose sections
+ *       with a language argument instead of hardcoding Spanish text.
+ *
  * The base persona is constant across all modes — same engineer, same voice.
  * Mode instructions activate different pedagogical strategies.
  * Scoring prompts stay in their original files (used by DeepSeek, not Gemini).

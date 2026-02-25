@@ -5,6 +5,11 @@
  * - Opens after 5 consecutive failures (network/timeout/5xx only)
  * - Stays open for 60s, then allows 1 probe request (HALF_OPEN)
  * - If probe succeeds → CLOSED; if it fails → OPEN again
+ *
+ * Limitation: state is a module-level singleton, so all concurrent
+ * requests in the same Node process share one breaker. In a single-user
+ * self-hosted deploy this is fine; in a multi-user managed deploy one
+ * user's failures can trip the breaker for everyone on that instance.
  */
 
 type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';

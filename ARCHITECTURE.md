@@ -29,6 +29,10 @@ Two hooks work together:
 
 The tutor appears as a sidebar on desktop (inside `AppShell`) and a floating mini-entity on mobile.
 
+### Voice Prompt Language
+
+Voice tutor prompts (`src/lib/llm/voice-unified-prompt.ts`, `voice-prompts.ts`) are currently written in **Rioplatense Spanish** (voseo). If you need to support another language, parameterize the prose sections with a language argument rather than duplicating prompt files.
+
 ## Data Flow
 
 ### Language Propagation
