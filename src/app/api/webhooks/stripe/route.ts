@@ -43,6 +43,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
+  // Idempotency check — skip already-processed events
+  const adminDb = getAdminClient();
+  const { data: existing } = await adminDb
+    .from('processed_stripe_events')
+    .select('event_id')
+    .eq('event_id', event.id)
+    .single();
+
+  if (existing) {
+    return NextResponse.json({ received: true, deduplicated: true });
+  }
+
+  // Mark event as processing (upsert to handle races)
+  await adminDb
+    .from('processed_stripe_events')
+    .upsert({ event_id: event.id }, { onConflict: 'event_id' });
+
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;

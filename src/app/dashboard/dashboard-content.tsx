@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowUp } from 'lucide-react';
 import { PricingModal } from '@/components/billing/pricing-modal';
 import type { Language } from '@/lib/translations';
 import { PipelineCourseCard, type PipelineCourseData } from './pipeline-course-card';
 import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
+import { isValidYoutubeUrl } from '@/lib/utils/youtube';
 
 const STAGE_LABELS: Record<string, Record<string, string>> = {
   es: {
@@ -27,6 +29,26 @@ const STAGE_LABELS: Record<string, Record<string, string>> = {
     write_db: 'Writing to database...',
   },
 };
+
+const PENDING_JOB_KEY = 'jarre-pending-job';
+
+const EXAMPLE_VIDEOS = [
+  {
+    title: '3Blue1Brown — But what is a neural network?',
+    url: 'https://www.youtube.com/watch?v=aircAruvnKk',
+    videoId: 'aircAruvnKk',
+  },
+  {
+    title: 'Fireship — 100+ Computer Science Concepts Explained',
+    url: 'https://www.youtube.com/watch?v=XASY30EfGAc',
+    videoId: 'XASY30EfGAc',
+  },
+  {
+    title: 'Veritasium — The Surprising Secret of Synchronization',
+    url: 'https://www.youtube.com/watch?v=t-_VPRCtiUg',
+    videoId: 't-_VPRCtiUg',
+  },
+];
 
 type PipelineStatus = 'idle' | 'submitting' | 'polling' | 'completed' | 'failed';
 
@@ -66,6 +88,15 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
   const handleSubmit = async () => {
     const trimmed = url.trim();
     if (!trimmed || isProcessing) return;
+
+    // Client-side YouTube URL validation
+    if (!isValidYoutubeUrl(trimmed)) {
+      setError(language === 'es'
+        ? 'Por favor ingresa una URL válida de YouTube.'
+        : 'Please enter a valid YouTube URL.');
+      setStatus('failed');
+      return;
+    }
 
     setStatus('submitting');
     setError(null);
@@ -110,12 +141,55 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
       }
 
       setJobId(data.jobId);
+      localStorage.setItem(PENDING_JOB_KEY, data.jobId);
       setStatus('polling');
     } catch {
       setError(language === 'es' ? 'Error de conexión' : 'Connection error');
       setStatus('failed');
     }
   };
+
+  const pollErrorCountRef = useRef(0);
+
+  // Recover pending job from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedJobId = localStorage.getItem(PENDING_JOB_KEY);
+      if (!savedJobId || jobId) return;
+
+      // Check if the job is still running
+      fetchWithKeys(`/api/pipeline/${savedJobId}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!data) {
+            localStorage.removeItem(PENDING_JOB_KEY);
+            return;
+          }
+          if (data.status === 'completed') {
+            localStorage.removeItem(PENDING_JOB_KEY);
+            if (data.resourceId) {
+              setResourceId(data.resourceId);
+              setStatus('completed');
+            }
+          } else if (data.status === 'failed') {
+            localStorage.removeItem(PENDING_JOB_KEY);
+          } else {
+            // Still running — resume polling
+            setJobId(savedJobId);
+            setStatus('polling');
+            if (data.currentStage) setCurrentStage(data.currentStage);
+            if (data.stagesCompleted) setStagesCompleted(data.stagesCompleted);
+            if (data.totalStages) setTotalStages(data.totalStages);
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem(PENDING_JOB_KEY);
+        });
+    } catch {
+      // localStorage unavailable
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Poll for pipeline status
   useEffect(() => {
@@ -127,6 +201,7 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
         if (!res.ok) return;
 
         const data = await res.json();
+        pollErrorCountRef.current = 0;
         setCurrentStage(data.currentStage);
         setStagesCompleted(data.stagesCompleted);
         setTotalStages(data.totalStages);
@@ -134,19 +209,29 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
         if (data.status === 'completed') {
           setStatus('completed');
           setResourceId(data.resourceId);
+          localStorage.removeItem(PENDING_JOB_KEY);
           clearInterval(interval);
         } else if (data.status === 'failed') {
           setStatus('failed');
           setError(data.error || 'Pipeline failed');
+          localStorage.removeItem(PENDING_JOB_KEY);
           clearInterval(interval);
         }
       } catch {
-        // Ignore polling errors
+        pollErrorCountRef.current += 1;
+        if (pollErrorCountRef.current >= 3) {
+          setStatus('failed');
+          setError(language === 'es'
+            ? 'Se perdió la conexión con el servidor. Intenta recargar la página.'
+            : 'Lost connection to server. Try reloading the page.');
+          localStorage.removeItem(PENDING_JOB_KEY);
+          clearInterval(interval);
+        }
       }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [status, jobId]);
+  }, [status, jobId, language]);
 
   // Auto-navigate on completion
   useEffect(() => {
@@ -165,6 +250,7 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
     setStagesCompleted(0);
     setCurrentStage(null);
     setResourceId(null);
+    localStorage.removeItem(PENDING_JOB_KEY);
   };
 
   return (
@@ -300,12 +386,36 @@ export function DashboardContent({ courses, language, stats }: DashboardContentP
 
       {/* Empty state — only when idle and no courses */}
       {courses.length === 0 && status === 'idle' && (
-        <div className="text-center py-12">
-          <p className="text-sm text-j-text-tertiary">
+        <div className="py-12">
+          <p className="text-sm text-j-text-tertiary text-center mb-8">
             {language === 'es'
-              ? 'Pega un link de YouTube arriba para generar tu primer curso.'
-              : 'Paste a YouTube link above to generate your first course.'}
+              ? 'Pega un link de YouTube arriba para generar tu primer curso, o prueba con uno de estos:'
+              : 'Paste a YouTube link above to generate your first course, or try one of these:'}
           </p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {EXAMPLE_VIDEOS.map((video) => (
+              <button
+                key={video.videoId}
+                onClick={() => setUrl(video.url)}
+                className="group text-left overflow-hidden rounded-lg border border-j-border bg-j-surface hover:border-j-accent/60 transition-all hover:shadow-md"
+              >
+                <div className="relative aspect-video bg-j-border/30 overflow-hidden">
+                  <Image
+                    src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                    alt={video.title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-3">
+                  <p className="text-xs text-j-text-secondary group-hover:text-j-accent transition-colors line-clamp-2">
+                    {video.title}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </>

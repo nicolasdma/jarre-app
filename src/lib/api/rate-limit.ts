@@ -58,8 +58,8 @@ export async function checkTokenBudget(
 
   if (error) {
     log.error('Failed to check token budget:', error.message);
-    // Fail open — don't block users if we can't check
-    return { allowed: true, used: 0, limit: PAID_LIMIT, remaining: PAID_LIMIT };
+    // Fail closed — block requests if we can't verify budget
+    return { allowed: false, used: 0, limit: 0, remaining: 0 };
   }
 
   const used = (data || []).reduce((sum, row) => sum + (row.tokens || 0), 0);

@@ -650,6 +650,11 @@ export function EvaluationFlow({ resource, concepts, userId, language, onCancel 
           <RubricSummary responses={results.responses} />
         </div>
 
+        {/* Discovery framing message */}
+        <p className="text-[10px] text-j-text-tertiary font-mono text-center mb-4">
+          {t('eval.discoveryMessage', language)}
+        </p>
+
         {/* Score summary */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -687,11 +692,6 @@ export function EvaluationFlow({ resource, concepts, userId, language, onCancel 
             </div>
           </div>
         </motion.div>
-
-        {/* Discovery framing message */}
-        <p className="text-[10px] text-j-text-tertiary font-mono text-center mb-6">
-          {t('eval.discoveryMessage', language)}
-        </p>
 
 {/* Recovery guidance for low scores */}
         {isLowScore && lowestDimension && (

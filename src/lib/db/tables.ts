@@ -52,4 +52,7 @@ export const TABLES = {
 
   // Pipeline
   pipelineJobs: 'pipeline_jobs',
+
+  // Stripe idempotency
+  processedStripeEvents: 'processed_stripe_events',
 } as const;

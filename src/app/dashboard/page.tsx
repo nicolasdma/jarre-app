@@ -116,6 +116,25 @@ export default async function DashboardPage() {
     }
   }
 
+  // Fetch learn_progress for "continue where you left off"
+  const progressMap: Record<string, { activeSection: number; completedSections: number[] }> = {};
+  if (user && resourceIds.length > 0) {
+    const { data: progressRows } = await supabase
+      .from(TABLES.learnProgress)
+      .select('resource_id, active_section, completed_sections')
+      .eq('user_id', user.id)
+      .in('resource_id', resourceIds);
+
+    if (progressRows) {
+      for (const p of progressRows) {
+        progressMap[p.resource_id] = {
+          activeSection: p.active_section ?? 1,
+          completedSections: p.completed_sections ?? [],
+        };
+      }
+    }
+  }
+
   // Fetch user_resources to determine ownership
   const ownedResourceIds = new Set<string>();
   if (user && resourceIds.length > 0) {
@@ -143,6 +162,7 @@ export default async function DashboardPage() {
     createdAt: r.created_at,
     evalStats: evalStats[r.id] || null,
     isOwner: ownedResourceIds.has(r.id),
+    progress: progressMap[r.id] || null,
   }));
 
   // Compute compact stats

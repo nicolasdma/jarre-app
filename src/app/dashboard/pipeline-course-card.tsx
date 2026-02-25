@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 import type { Language } from '@/lib/translations';
+import { extractYoutubeId } from '@/lib/utils/youtube';
 
 export interface PipelineCourseData {
   id: string;
@@ -16,14 +17,10 @@ export interface PipelineCourseData {
     bestScore: number;
     evalCount: number;
   } | null;
-}
-
-function extractYoutubeId(url: string | null): string | null {
-  if (!url) return null;
-  const match = url.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/
-  );
-  return match?.[1] ?? null;
+  progress: {
+    activeSection: number;
+    completedSections: number[];
+  } | null;
 }
 
 function relativeDate(dateStr: string, lang: Language): string {
@@ -104,6 +101,11 @@ export function PipelineCourseCard({
               {' · '}
               {relativeDate(course.createdAt, language)}
             </p>
+            {course.progress && (
+              <p className="font-mono text-[10px] text-j-accent mt-1">
+                {language === 'es' ? 'Sección' : 'Section'} {course.progress.activeSection}/{course.sectionCount}
+              </p>
+            )}
           </div>
         </div>
       </div>

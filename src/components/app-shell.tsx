@@ -82,6 +82,12 @@ export function AppShell({ children, language }: AppShellProps) {
   }, [session]);
 
   const closeVoice = useCallback(() => {
+    if (session.state === 'active' && session.elapsed > 30) {
+      const confirmed = window.confirm(
+        '¿Cerrar la sesión de voz activa? Se perderá el progreso actual.'
+      );
+      if (!confirmed) return;
+    }
     if (session.state === 'active' || session.state === 'connecting') {
       session.stop();
     }

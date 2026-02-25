@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UpgradeButton, ManageSubscriptionButton } from '@/components/billing/billing-actions';
 
 const FREE_FEATURES = [
-  '50K tokens/month',
+  '50K tokens/month (~2-3 courses)',
   'Unlimited courses',
   'Voice tutoring (7 modes)',
   'Spaced repetition',
@@ -16,7 +16,7 @@ const FREE_FEATURES = [
 ];
 
 const PRO_FEATURES = [
-  '500K tokens/month',
+  '500K tokens/month (~25-30 courses)',
   'Everything in Free',
   '10x token budget',
   'Priority support',
