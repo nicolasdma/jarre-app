@@ -1,0 +1,48 @@
+'use client';
+
+import Link from 'next/link';
+
+interface PlanBannerProps {
+  status: string;
+  used: number;
+  limit: number;
+}
+
+export function PlanBanner({ status, used, limit }: PlanBannerProps) {
+  const isActive = status === 'active';
+  const percent = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+  const isLow = percent >= 80;
+  const exceeded = used >= limit;
+
+  // Pro users who aren't low on tokens — don't show anything
+  if (isActive && !isLow) return null;
+
+  return (
+    <div className="mb-6 flex items-center gap-3 text-[11px] font-mono text-j-text-tertiary">
+      <span className={`uppercase tracking-[0.15em] ${isActive ? 'text-j-accent' : ''}`}>
+        {isActive ? 'Pro' : 'Free'}
+      </span>
+      <span className="text-j-border">·</span>
+      <span className={exceeded ? 'text-red-400' : ''}>
+        {formatK(used)}/{formatK(limit)} tokens
+      </span>
+      {!isActive && (
+        <>
+          <span className="text-j-border">·</span>
+          <Link
+            href="/pricing"
+            className="text-j-accent hover:underline"
+          >
+            Upgrade
+          </Link>
+        </>
+      )}
+    </div>
+  );
+}
+
+function formatK(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1000) return `${Math.round(n / 1000)}K`;
+  return String(n);
+}

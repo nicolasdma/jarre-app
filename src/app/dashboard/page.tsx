@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { TABLES } from '@/lib/db/tables';
 import { Header } from '@/components/header';
 import { SectionLabel } from '@/components/ui/section-label';
+import { PlanBanner } from '@/components/billing/plan-banner';
+import { IS_MANAGED } from '@/lib/config';
 import type { Language } from '@/lib/translations';
 import { DashboardContent } from './dashboard-content';
 import type { PipelineCourseData } from './pipeline-course-card';
@@ -32,6 +34,30 @@ export default async function DashboardPage() {
 
     lang = (profile?.language || 'es') as Language;
   }
+
+  // Fetch subscription status and token usage for billing banner
+  let subscriptionStatus = 'free';
+  let monthlyUsed = 0;
+  if (user && IS_MANAGED) {
+    const { data: billingProfile } = await supabase
+      .from(TABLES.userProfiles)
+      .select('subscription_status')
+      .eq('id', user.id)
+      .single();
+    subscriptionStatus = billingProfile?.subscription_status || 'free';
+
+    const now = new Date();
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+    const { data: tokenRows } = await supabase
+      .from(TABLES.tokenUsage)
+      .select('tokens')
+      .eq('user_id', user.id)
+      .gte('created_at', monthStart.toISOString())
+      .lt('created_at', monthEnd.toISOString());
+    monthlyUsed = (tokenRows || []).reduce((sum, r) => sum + (r.tokens || 0), 0);
+  }
+  const monthlyLimit = subscriptionStatus === 'active' ? 500_000 : 50_000;
 
   // Fetch pipeline-generated resources (video/lecture types)
   const { data: resources } = await supabase
@@ -146,6 +172,11 @@ export default async function DashboardPage() {
           <p className="text-xl sm:text-2xl font-light text-j-text-tertiary">
             {lang === 'es' ? 'desde cualquier video de YouTube' : 'from any YouTube video'}
           </p>
+          {IS_MANAGED && user && (
+            <div className="mt-4">
+              <PlanBanner status={subscriptionStatus} used={monthlyUsed} limit={monthlyLimit} />
+            </div>
+          )}
         </div>
 
         {/* Input + Stats + Course Grid */}

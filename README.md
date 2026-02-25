@@ -1,93 +1,126 @@
 # Jarre
 
-> Named after Jean-Michel Jarre - the orchestrator of sound.
-> This system orchestrates deep learning.
+> Named after Jean-Michel Jarre — the orchestrator of sound.
 
-A personal learning system for mastering complex technical knowledge. Not flashcards. Not memorization. **Deep comprehension validation.**
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)
 
-## What is this?
+Paste a YouTube link, get a full course. Jarre transforms videos into structured learning experiences with AI-generated content, evaluations, voice tutoring, and spaced repetition.
 
-Jarre helps you truly understand papers, books, and courses by:
+<!-- TODO: Add screenshot of dashboard + learn flow -->
 
-1. **Mapping knowledge** - Before reading, see what concepts you'll learn and what prerequisites you need
-2. **Validating understanding** - After reading, AI generates hard questions to test real comprehension
-3. **Tracking mastery** - See your progress across concepts, identify gaps, get recommendations
-4. **Connecting practice** - Each phase has projects that force you to apply what you learned
+## Why
 
-## Mastery Levels
+Most "learn with AI" tools quiz you on surface-level recall. Jarre evaluates depth of reasoning — not whether you got the right answer, but whether you understand *why*.
 
-| Level | Name | Criteria |
-|-------|------|----------|
-| 0 | Exposed | Read/watched the material |
-| 1 | Understood | Can explain without notes |
-| 2 | Applied | Used in a project/exercise |
-| 3 | Criticized | Can say when NOT to use it and why |
-| 4 | Taught | Can explain to others and answer questions |
+It uses 10 specialized rubrics (not one generic prompt), each scoring 3 dimensions on a 0-6 scale. A rubric for comparing tradeoffs is fundamentally different from one that evaluates scenario diagnosis, so they should be different prompts.
 
-## Tech Stack
+## How it works
 
-- **Frontend**: Next.js 16 (App Router), Tailwind CSS, shadcn/ui
-- **Auth + DB**: Supabase (Auth + Postgres + RLS)
-- **LLM**: DeepSeek V3 (primary), Kimi K2 (fallback)
-- **Voice**: Gemini Live (WebSocket, real-time audio)
-- **Hosting**: Vercel
+Paste a YouTube URL into the dashboard. A 6-stage pipeline extracts the transcript, segments it into sections, generates pedagogical content, maps video timestamps, identifies concepts, and writes everything to the database. Quizzes generate in the background — you can start reading immediately.
 
-## Development
+```
+resolve → segment → content → [video_map ‖ concepts] → write_db → COMPLETED
+                                                                    ↓ (background)
+                                                               generate quizzes
+```
+
+## Features
+
+**Learning flow (5 steps):**
+1. **Activate** — pre-reading overview, concept map, exploratory voice chat
+2. **Learn** — guided reading with inline quizzes, video embeds with clickable timestamps, LaTeX math rendering
+3. **Apply** — practical scenarios + interactive playgrounds (18 available)
+4. **Practice** — AI-generated questions + voice practice sessions
+5. **Evaluate** — 5 generated questions, automatic scoring, mastery determination
+
+**Voice tutor — 7 session modes:**
+
+| Mode | What it does |
+|------|-------------|
+| eval | Oral exam disguised as conversation |
+| practice | Guided practice with escalating hints |
+| exploration | Connection-driven resource exploration |
+| debate | Devil's advocate on technical topics |
+| freeform | Open intellectual conversation |
+| teach | You teach a confused junior (tests real understanding) |
+| learning | Section-specific tutor while you read |
+
+Real-time audio over WebSocket (Gemini). Supports interruptions, session resumption, live transcription, and tool calls (scroll to concept, show definition, end session).
+
+**Evaluation — 10 specialized rubrics:**
+
+Each question type gets its own rubric with 3 dimensions scored 0-2 (total 0-6). Knowledge, Comparison, Guarantee, Complexity, Scenario, Error Detection, Connection, Tradeoff, Design, Justification.
+
+**Spaced repetition (FSRS):**
+- 90% target retention, 180-day max interval
+- Daily cap: 12 cards per session
+- Interleaving: never two consecutive questions from the same concept
+
+**Also:** knowledge graph (force-directed 3D), mastery levels (0-4: Exposed → Taught), XP system, streaks, learner memory (tracks misconceptions per concept), i18n (en/es).
+
+## Tech stack
+
+| Layer | Tech |
+|-------|------|
+| Framework | Next.js 16, React 19, TypeScript strict |
+| Styling | Tailwind CSS v4 |
+| DB & Auth | Supabase (PostgreSQL + RLS + Auth) |
+| LLM | DeepSeek V3 (evaluations, content, pipeline) |
+| Voice | Gemini 2.5 Flash (WebSocket, real-time audio) |
+| Spaced repetition | ts-fsrs |
+| Visualization | Three.js, react-force-graph-3d, Framer Motion |
+| Math | KaTeX, remark-math, rehype-katex |
+| Validation | Zod |
+| Testing | Vitest |
+
+## Get started
+
+### Self-host (free, full control)
 
 ```bash
-# Install dependencies
+git clone https://github.com/nicolasdemaria/jarre.git
+cd jarre
 npm install
-
-# Set up environment
 cp .env.example .env.local
-# Edit .env.local with your keys
-
-# Run development server
+# Fill in your API keys
 npm run dev
-
-# Open http://localhost:3000
 ```
 
-## Environment Variables
+See **[SELF_HOSTING.md](./SELF_HOSTING.md)** for the full setup guide (Supabase, API keys, production deployment).
 
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_url
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-SUPABASE_SECRET_KEY=your_secret_key
+### Hosted (managed)
 
-# LLM APIs
-DEEPSEEK_API_KEY=your_key
-KIMI_API_KEY=your_key (optional fallback)
-GEMINI_API_KEY=your_key (required for voice)
-DEEPL_API_KEY=your_key (optional, for translation)
-```
+Coming soon at [jarre.app](https://jarre.app) — bring your own API keys or subscribe for managed access.
 
-## Project Structure
+## Project structure
 
 ```
-jarre/
+jarre-app/
 ├── src/
-│   ├── app/                    # Next.js pages & API routes
-│   │   ├── study/[resourceId]/ # PDF reader + canvas notes
-│   │   ├── learn/[resourceId]/ # Deep learning flow (sections, quizzes, eval)
-│   │   ├── resources/[id]/     # Resource detail (metadata, voice launcher)
+│   ├── app/                    # Next.js pages & API routes (~50 routes)
+│   │   ├── dashboard/          # Main entry point (YouTube input)
+│   │   ├── learn/[resourceId]/ # 5-step learning flow
 │   │   ├── evaluate/           # Evaluation flow
-│   │   ├── review/             # Spaced repetition review
+│   │   ├── review/             # Spaced repetition
 │   │   └── api/                # API routes
-│   ├── components/             # React components
-│   │   ├── ui/                 # Base UI (shadcn)
-│   │   ├── contexts/           # React context providers
-│   │   ├── voice/              # Voice session components
-│   │   └── ...                 # Feature components
-│   ├── data/                   # Static curriculum & resource data (TSX)
-│   ├── lib/                    # Utilities (supabase, llm, fsrs, etc.)
+│   ├── components/             # React components (~78)
+│   │   ├── voice/              # Voice session UI
+│   │   ├── concept-visuals/    # Interactive visualizations
+│   │   └── ui/                 # Base UI (shadcn)
+│   ├── lib/                    # Utilities (supabase, llm, fsrs, constants)
 │   └── types/                  # TypeScript types
+├── engine/                     # Storage engine (~3.9K lines)
 ├── supabase/
-│   └── migrations/             # Database migrations
-└── README.md                   # This file
+│   └── migrations/             # 1 migration, 41 tables
+└── README.md
 ```
+
+## Numbers
+
+~42K lines of TypeScript. 41 tables. 1 contributor.
 
 ## License
 
-MIT
+[AGPL-3.0](./LICENSE)
