@@ -15,7 +15,7 @@ interface ByokContextValue {
   keys: ByokKeys;
   hasKeys: boolean;
   loading: boolean;
-  saveKeys: (keys: ByokKeys, sessionToken: string) => Promise<void>;
+  saveKeys: (keys: ByokKeys) => Promise<void>;
   removeKeys: () => void;
 }
 
@@ -33,30 +33,33 @@ export function useByok() {
 
 export function ByokProvider({
   children,
+  userId,
   sessionToken,
 }: {
   children: React.ReactNode;
+  userId?: string;
   sessionToken?: string;
 }) {
   const [keys, setKeys] = useState<ByokKeys>({});
   const [loading, setLoading] = useState(IS_MANAGED);
 
   useEffect(() => {
-    if (!IS_MANAGED || !sessionToken) {
+    if (!IS_MANAGED || !userId) {
       setLoading(false);
       return;
     }
 
-    loadKeys(sessionToken).then((loaded) => {
+    loadKeys(userId, sessionToken).then((loaded) => {
       if (loaded) setKeys(loaded);
       setLoading(false);
     });
-  }, [sessionToken]);
+  }, [userId, sessionToken]);
 
-  const saveKeysHandler = useCallback(async (newKeys: ByokKeys, token: string) => {
-    await storeKeys(newKeys, token);
+  const saveKeysHandler = useCallback(async (newKeys: ByokKeys) => {
+    if (!userId) return;
+    await storeKeys(newKeys, userId);
     setKeys(newKeys);
-  }, []);
+  }, [userId]);
 
   const removeKeysHandler = useCallback(() => {
     clearKeys();

@@ -7,6 +7,7 @@
 
 import { z } from 'zod';
 import { createLogger } from '@/lib/logger';
+import { beforeRequest, onSuccess, onFailure, isCircuitRelevantError } from './circuit-breaker';
 
 const log = createLogger('DeepSeek');
 
@@ -61,6 +62,9 @@ export async function callDeepSeek(params: {
     ...(responseFormat === 'json' && { response_format: { type: 'json_object' } }),
   };
 
+  // Circuit breaker: fail fast if the service is in outage
+  beforeRequest();
+
   let lastError: Error | null = null;
 
   // Retry up to 3 times with exponential backoff
@@ -85,9 +89,15 @@ export async function callDeepSeek(params: {
       const content = data.choices[0]?.message?.content || '';
       const tokensUsed = data.usage?.total_tokens || 0;
 
+      onSuccess();
       return { content, tokensUsed };
     } catch (error) {
       lastError = error as Error;
+
+      if (isCircuitRelevantError(error)) {
+        onFailure();
+      }
+
       if (error instanceof DOMException && error.name === 'TimeoutError') {
         if (!retryOnTimeout || attempt >= 2) {
           throw new Error(`La solicitud al modelo tardó demasiado (timeout ${Math.round(timeoutMs / 1000)}s). Intenta de nuevo.`);

@@ -55,11 +55,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true, deduplicated: true });
   }
 
-  // Mark event as processing (upsert to handle races)
-  await adminDb
-    .from('processed_stripe_events')
-    .upsert({ event_id: event.id }, { onConflict: 'event_id' });
-
+  // Execute mutations BEFORE marking as processed.
+  // If the mutation fails, the event stays unprocessed and Stripe retries correctly.
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
@@ -114,6 +111,11 @@ export async function POST(request: Request) {
       break;
     }
   }
+
+  // Mark event as processed AFTER successful mutation
+  await adminDb
+    .from('processed_stripe_events')
+    .upsert({ event_id: event.id }, { onConflict: 'event_id' });
 
   return NextResponse.json({ received: true });
 }

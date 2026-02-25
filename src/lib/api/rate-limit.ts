@@ -74,7 +74,9 @@ export async function checkTokenBudget(
   const limit = profile?.subscription_status === 'active' ? PAID_LIMIT : FREE_TRIAL_LIMIT;
 
   const remaining = Math.max(0, limit - used);
-  const allowed = used < limit;
+  // 10% tolerance margin: concurrent requests can read stale `used` values and both pass
+  // the check. This is acceptable — the overshoot is bounded and the cost is tokens, not money.
+  const allowed = used < limit * 1.1;
 
   if (!allowed) {
     log.info(`User ${userId} exceeded token budget: ${used}/${limit}`);

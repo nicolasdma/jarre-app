@@ -37,7 +37,7 @@ export default async function SettingsPage() {
         </h1>
 
         <div className="border border-j-border rounded-lg p-6">
-          <ApiKeysSettings sessionToken={session.access_token} />
+          <ApiKeysSettings />
         </div>
       </div>
     </>

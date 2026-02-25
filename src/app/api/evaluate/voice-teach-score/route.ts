@@ -134,31 +134,33 @@ export const POST = withAuth(async (request, { supabase, user, byokKeys }) => {
     let masteryAdvanced = false;
 
     if (newLevel > currentLevel) {
-      masteryAdvanced = true;
-
-      await supabase.from(TABLES.conceptProgress).upsert(
-        {
-          user_id: user.id,
-          concept_id: conceptId,
+      // Conditional update: only advance if level hasn't changed concurrently
+      const { count } = await supabase.from(TABLES.conceptProgress)
+        .update({
           level: serializeMasteryLevel(newLevel),
           last_evaluated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,concept_id' }
-      );
-
-      await supabase.from(TABLES.masteryHistory).insert(
-        buildMasteryHistoryRecord({
-          userId: user.id,
-          conceptId,
-          oldLevel: currentLevel,
-          newLevel,
-          triggerType: 'teach_session',
-          triggerId: voiceSessionId,
         })
-      );
+        .eq('user_id', user.id)
+        .eq('concept_id', conceptId)
+        .eq('level', serializeMasteryLevel(currentLevel));
 
-      // Award mastery advance XP
-      await awardXP(supabase, user.id, XP_REWARDS.MASTERY_ADVANCE, 'mastery_advance', conceptId);
+      if (count === null || count > 0) {
+        masteryAdvanced = true;
+
+        await supabase.from(TABLES.masteryHistory).insert(
+          buildMasteryHistoryRecord({
+            userId: user.id,
+            conceptId,
+            oldLevel: currentLevel,
+            newLevel,
+            triggerType: 'teach_session',
+            triggerId: voiceSessionId,
+          })
+        );
+
+        // Award mastery advance XP
+        await awardXP(supabase, user.id, XP_REWARDS.MASTERY_ADVANCE, 'mastery_advance', conceptId);
+      }
     }
 
     // Update learner concept memory with misconceptions/strengths from teach scoring

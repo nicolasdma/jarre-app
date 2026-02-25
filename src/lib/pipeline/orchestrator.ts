@@ -29,6 +29,9 @@ import type {
 
 const log = createLogger('Pipeline');
 
+const PIPELINE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+const STALE_JOB_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+
 const STAGE_ORDER: PipelineStage[] = [
   'resolve',
   'segment',
@@ -82,9 +85,21 @@ export async function startPipeline(config: PipelineConfig): Promise<string> {
     throw new Error(`Failed to create pipeline job: ${error.message}`);
   }
 
-  // Fire-and-forget: execute pipeline asynchronously
-  executePipeline(job.id, config).catch((err) => {
-    log.error(`Pipeline ${job.id} failed unexpectedly:`, (err as Error).message);
+  // Fire-and-forget: execute pipeline with global timeout
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Pipeline timeout exceeded')), PIPELINE_TIMEOUT_MS),
+  );
+
+  Promise.race([executePipeline(job.id, config), timeoutPromise]).catch(async (err) => {
+    const errMsg = (err as Error).message;
+    log.error(`Pipeline ${job.id} failed unexpectedly:`, errMsg);
+    if (errMsg === 'Pipeline timeout exceeded') {
+      await updateJob(job.id, {
+        status: 'failed',
+        error: errMsg,
+        failed_stage: 'timeout',
+      });
+    }
   });
 
   return job.id;
@@ -107,6 +122,23 @@ export async function getPipelineStatus(
     .single();
 
   if (error || !data) return null;
+
+  // Stale job detection: if processing for too long, treat as failed
+  if (data.status === 'processing' && data.updated_at) {
+    const updatedAt = new Date(data.updated_at).getTime();
+    if (Date.now() - updatedAt > STALE_JOB_THRESHOLD_MS) {
+      return {
+        jobId: data.id,
+        status: 'failed' as const,
+        currentStage: data.current_stage,
+        stagesCompleted: data.stages_completed,
+        totalStages: data.total_stages,
+        resourceId: data.resource_id,
+        error: 'Job stale — no progress detected',
+        failedStage: data.current_stage || data.failed_stage,
+      };
+    }
+  }
 
   return {
     jobId: data.id,

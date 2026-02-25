@@ -45,10 +45,12 @@ export default async function RootLayout({
   // Detect user language for voice overlay + get session for BYOK
   let language: Language = 'es';
   let sessionToken: string | undefined;
+  let userId: string | undefined;
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      userId = user.id;
       const { data: profile } = await supabase
         .from(TABLES.userProfiles)
         .select('language')
@@ -74,7 +76,7 @@ export default async function RootLayout({
         >
           Saltar al contenido principal
         </a>
-        <ByokProvider sessionToken={sessionToken}>
+        <ByokProvider userId={userId} sessionToken={sessionToken}>
           <TutorContextProvider>
             <AppShell language={language}>
               <main id="main-content">

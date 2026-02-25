@@ -267,8 +267,6 @@ export async function updateConceptMastery({
 
   if (newLevel > currentLevel) {
     const updateFields: Record<string, unknown> = {
-      user_id: userId,
-      concept_id: conceptId,
       level: serializeMasteryLevel(newLevel),
       last_evaluated_at: new Date().toISOString(),
     };
@@ -279,22 +277,30 @@ export async function updateConceptMastery({
       updateFields.level_3_score = score;
     }
 
-    await supabase.from(TABLES.conceptProgress).upsert(
-      updateFields,
-      { onConflict: 'user_id,concept_id' }
-    );
+    // Conditional update: only advance if the level hasn't changed since we read it.
+    // If a concurrent request already advanced the level, this update affects 0 rows (no-op).
+    const { count } = await supabase.from(TABLES.conceptProgress)
+      .update(updateFields)
+      .eq('user_id', userId)
+      .eq('concept_id', conceptId)
+      .eq('level', serializeMasteryLevel(currentLevel));
 
-    // Log mastery history
-    await supabase.from(TABLES.masteryHistory).insert(
-      buildMasteryHistoryRecord({
-        userId,
-        conceptId: conceptId,
-        oldLevel: currentLevel,
-        newLevel,
-        triggerType,
-        triggerId: evaluationId,
-      })
-    );
+    // Only log mastery history if we actually changed the level
+    if (count === null || count > 0) {
+      await supabase.from(TABLES.masteryHistory).insert(
+        buildMasteryHistoryRecord({
+          userId,
+          conceptId: conceptId,
+          oldLevel: currentLevel,
+          newLevel,
+          triggerType,
+          triggerId: evaluationId,
+        })
+      );
+    } else {
+      log.info(`Mastery update skipped for concept ${conceptId}: level already changed by concurrent request`);
+      return; // Skip review schedule creation too
+    }
 
     // When advancing to level 1, create review_schedule entries
     if (newLevel >= 1 && currentLevel < 1) {

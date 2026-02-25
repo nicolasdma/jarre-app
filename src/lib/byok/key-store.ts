@@ -2,7 +2,8 @@
  * Jarre - BYOK Key Store
  *
  * Client-side encrypted storage for user-provided API keys.
- * Keys are encrypted with AES-GCM using a key derived from the user's session token (PBKDF2).
+ * Keys are encrypted with AES-GCM using a key derived from the user's ID (PBKDF2).
+ * The userId (stable UUID) is used instead of sessionToken so keys survive re-login.
  * Stored in localStorage, decrypted into an in-memory cache on load.
  */
 
@@ -18,13 +19,13 @@ export interface ByokKeys {
 let cachedKeys: ByokKeys | null = null;
 
 /**
- * Derive an AES-GCM key from a session token using PBKDF2.
+ * Derive an AES-GCM key from a stable identifier using PBKDF2.
  */
-async function deriveKey(sessionToken: string, salt: Uint8Array): Promise<CryptoKey> {
+async function deriveKey(material: string, salt: Uint8Array): Promise<CryptoKey> {
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(sessionToken),
+    encoder.encode(material),
     'PBKDF2',
     false,
     ['deriveKey'],
@@ -47,10 +48,10 @@ async function deriveKey(sessionToken: string, salt: Uint8Array): Promise<Crypto
 /**
  * Encrypt and store API keys in localStorage.
  */
-export async function storeKeys(keys: ByokKeys, sessionToken: string): Promise<void> {
+export async function storeKeys(keys: ByokKeys, userId: string): Promise<void> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const derivedKey = await deriveKey(sessionToken, salt);
+  const derivedKey = await deriveKey(userId, salt);
 
   const encoder = new TextEncoder();
   const plaintext = encoder.encode(JSON.stringify(keys));
@@ -72,16 +73,12 @@ export async function storeKeys(keys: ByokKeys, sessionToken: string): Promise<v
 }
 
 /**
- * Load and decrypt API keys from localStorage.
- * Returns null if no keys stored or decryption fails.
+ * Attempt to decrypt the stored payload with the given material.
  */
-export async function loadKeys(sessionToken: string): Promise<ByokKeys | null> {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
-
+async function tryDecrypt(raw: string, material: string): Promise<ByokKeys | null> {
   try {
     const { salt, iv, data } = JSON.parse(raw);
-    const derivedKey = await deriveKey(sessionToken, base64ToArray(salt));
+    const derivedKey = await deriveKey(material, base64ToArray(salt));
 
     const ivArr = base64ToArray(iv);
     const dataArr = base64ToArray(data);
@@ -92,13 +89,40 @@ export async function loadKeys(sessionToken: string): Promise<ByokKeys | null> {
     );
 
     const decoder = new TextDecoder();
-    const keys: ByokKeys = JSON.parse(decoder.decode(plaintext));
-    cachedKeys = keys;
-    return keys;
+    return JSON.parse(decoder.decode(plaintext));
   } catch {
-    // Decryption failed (wrong session, corrupted data, etc.)
     return null;
   }
+}
+
+/**
+ * Load and decrypt API keys from localStorage.
+ * Uses userId as primary decryption material.
+ * Falls back to sessionToken for migration from older encryption, then re-encrypts with userId.
+ */
+export async function loadKeys(userId: string, sessionToken?: string): Promise<ByokKeys | null> {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+
+  // Try decrypting with userId (new scheme)
+  const keys = await tryDecrypt(raw, userId);
+  if (keys) {
+    cachedKeys = keys;
+    return keys;
+  }
+
+  // Migration: try old sessionToken-based encryption
+  if (sessionToken) {
+    const legacyKeys = await tryDecrypt(raw, sessionToken);
+    if (legacyKeys) {
+      // Re-encrypt with userId for future logins
+      await storeKeys(legacyKeys, userId);
+      cachedKeys = legacyKeys;
+      return legacyKeys;
+    }
+  }
+
+  return null;
 }
 
 /**

@@ -99,7 +99,7 @@ function KeyInput({ label, provider, value, onChange, helpUrl }: KeyInputProps) 
   );
 }
 
-export function ApiKeysSettings({ sessionToken }: { sessionToken: string }) {
+export function ApiKeysSettings() {
   const { keys, hasKeys, saveKeys, removeKeys } = useByok();
   const [deepseek, setDeepseek] = useState(keys.deepseek || '');
   const [gemini, setGemini] = useState(keys.gemini || '');
@@ -108,13 +108,10 @@ export function ApiKeysSettings({ sessionToken }: { sessionToken: string }) {
 
   async function handleSave() {
     setSaving(true);
-    await saveKeys(
-      {
-        deepseek: deepseek.trim() || undefined,
-        gemini: gemini.trim() || undefined,
-      },
-      sessionToken,
-    );
+    await saveKeys({
+      deepseek: deepseek.trim() || undefined,
+      gemini: gemini.trim() || undefined,
+    });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
