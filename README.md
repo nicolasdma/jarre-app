@@ -145,6 +145,8 @@ Jarre is designed to be self-hosted. You bring your own API keys (DeepSeek + Gem
 
 Full instructions: **[SELF_HOSTING.md](./SELF_HOSTING.md)**
 
+A hosted version is available at [jarre-app.vercel.app](https://jarre-app.vercel.app) — bring your own API keys or subscribe for managed access.
+
 ## Contributing
 
 Contributions are welcome. See **[CONTRIBUTING.md](./CONTRIBUTING.md)** for guidelines, and **[ARCHITECTURE.md](./ARCHITECTURE.md)** for how the system is structured.

@@ -10,8 +10,8 @@
 ## Quick Start
 
 ```bash
-git clone https://github.com/nicolasdemaria/jarre.git
-cd jarre
+git clone https://github.com/nicolasdemaria/jarre-app.git
+cd jarre-app
 npm install
 cp .env.example .env.local
 # Fill in your API keys (see below)
