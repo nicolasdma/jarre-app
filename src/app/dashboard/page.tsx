@@ -183,14 +183,14 @@ export default async function DashboardPage() {
         {/* Hero Section */}
         <div className="mb-12">
           <SectionLabel>
-            {lang === 'es' ? 'Dashboard' : 'Dashboard'}
+            {lang === 'es' ? 'Aprende creando' : 'Learn by doing'}
           </SectionLabel>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-normal italic tracking-tight text-j-text mb-2 font-[family-name:var(--j-font-display)]">
-            {lang === 'es' ? 'Aprende' : 'Learn'}
+            {lang === 'es' ? 'Un video. Tu curso.' : 'Any video. Your classroom.'}
           </h1>
           <p className="text-xl sm:text-2xl font-light text-j-text-tertiary">
-            {lang === 'es' ? 'desde cualquier video de YouTube' : 'from any YouTube video'}
+            {lang === 'es' ? 'Viste 1,000 videos. ¿Cuánto aprendiste?' : "You've watched 1,000 videos. How much do you remember?"}
           </p>
           {IS_MANAGED && user && (
             <div className="mt-4">
