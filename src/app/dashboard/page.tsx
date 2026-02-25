@@ -187,10 +187,10 @@ export default async function DashboardPage() {
           </SectionLabel>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-normal italic tracking-tight text-j-text mb-2 font-[family-name:var(--j-font-display)]">
-            {lang === 'es' ? 'Un video. Tu curso.' : 'Any video. Your classroom.'}
+            {lang === 'es' ? 'Un video. Tu academia.' : 'Any video. Your classroom.'}
           </h1>
           <p className="text-xl sm:text-2xl font-light text-j-text-tertiary">
-            {lang === 'es' ? 'Viste 1,000 videos. ¿Cuánto aprendiste?' : "You've watched 1,000 videos. How much do you remember?"}
+            {lang === 'es' ? 'Miles de horas de video. ¿Qué te quedó?' : "You've watched 1,000 videos. How much do you remember?"}
           </p>
           {IS_MANAGED && user && (
             <div className="mt-4">
@@ -211,7 +211,7 @@ export default async function DashboardPage() {
       <footer className="border-t border-j-border py-8 mt-8">
         <div className="mx-auto max-w-6xl px-4 sm:px-8 flex flex-col items-center gap-2">
           <p className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase text-center">
-            Jarre · {lang === 'es' ? 'Convertí videos en aprendizaje profundo' : 'Turn videos into deep learning'} · {new Date().getFullYear()}
+            Jarre · {lang === 'es' ? 'Convertí videos en conocimiento real' : 'Turn videos into deep learning'} · {new Date().getFullYear()}
           </p>
           <div className="flex items-center gap-3 font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase">
             <a href="https://github.com/nicolasdma/jarre-app" target="_blank" rel="noopener noreferrer" className="hover:text-j-text-secondary transition-colors">GitHub</a>
