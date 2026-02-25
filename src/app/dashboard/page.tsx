@@ -209,10 +209,15 @@ export default async function DashboardPage() {
 
       {/* Footer */}
       <footer className="border-t border-j-border py-8 mt-8">
-        <div className="mx-auto max-w-6xl px-4 sm:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-8 flex flex-col items-center gap-2">
           <p className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase text-center">
-            Jarre · {lang === 'es' ? 'Conocimiento Profundo' : 'Deep Knowledge'} · {new Date().getFullYear()}
+            Jarre · {lang === 'es' ? 'Convertí videos en aprendizaje profundo' : 'Turn videos into deep learning'} · {new Date().getFullYear()}
           </p>
+          <div className="flex items-center gap-3 font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase">
+            <a href="https://github.com/nicolasdma/jarre-app" target="_blank" rel="noopener noreferrer" className="hover:text-j-text-secondary transition-colors">GitHub</a>
+            <span>·</span>
+            <span>AGPL-3.0</span>
+          </div>
         </div>
       </footer>
     </div>
