@@ -6,6 +6,7 @@ import { t, type Language } from '@/lib/translations';
 import type { ReviewSubmitResponse, InlineQuiz, VideoSegment, Exercise, ExerciseResult } from '@/types';
 import { useWhisper } from '@/lib/whisper/whisper-context';
 import type { SectionState } from '@/lib/learn-progress';
+import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
 import { ExerciseShell } from '@/components/exercises/exercise-shell';
 import { VoicePanel } from '@/components/voice/voice-panel';
 
@@ -180,7 +181,7 @@ export const ConceptSection = memo(function ConceptSection({
     setPostError(null);
 
     try {
-      const res = await fetch('/api/review/submit', {
+      const res = await fetchWithKeys('/api/review/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

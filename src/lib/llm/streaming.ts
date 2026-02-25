@@ -45,10 +45,11 @@ export async function callDeepSeekStream(params: {
   messages: DeepSeekMessage[];
   temperature?: number;
   maxTokens?: number;
+  apiKey?: string;
 }): Promise<ReadableStream> {
   const { messages, temperature = 0.3, maxTokens = 2000 } = params;
 
-  const apiKey = process.env.DEEPSEEK_API_KEY;
+  const apiKey = params.apiKey || process.env.DEEPSEEK_API_KEY;
   if (!apiKey) {
     throw new Error('DEEPSEEK_API_KEY is not configured');
   }

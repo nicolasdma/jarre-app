@@ -65,11 +65,13 @@ async function translateMarkdown(
   fromLang: string,
   toLang: string,
   context: string,
+  apiKey?: string,
 ): Promise<{ translated: string; tokensUsed: number }> {
   const fromName = LANG_NAMES[fromLang] || fromLang;
   const toName = LANG_NAMES[toLang] || toLang;
 
   const { content, tokensUsed } = await callDeepSeek({
+    apiKey,
     messages: [
       {
         role: 'system',
@@ -104,11 +106,13 @@ async function translatePlainText(
   fromLang: string,
   toLang: string,
   context: string,
+  apiKey?: string,
 ): Promise<{ translated: string; tokensUsed: number }> {
   const fromName = LANG_NAMES[fromLang] || fromLang;
   const toName = LANG_NAMES[toLang] || toLang;
 
   const { content, tokensUsed } = await callDeepSeek({
+    apiKey,
     messages: [
       {
         role: 'system',

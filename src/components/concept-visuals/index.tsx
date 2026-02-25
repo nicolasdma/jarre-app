@@ -23,12 +23,12 @@ import { FailoverVisual } from './failover';
  * "replication") to each show a different visual.
  */
 const VISUAL_REGISTRY: Record<string, ComponentType> = {
-  // Section-specific visuals for DDIA Ch5 (all concept_id = replication)
-  'replication:0': LeaderFollowerVisual,   // Líderes y Seguidores
-  'replication:1': ReplicationLagVisual,   // Problemas con el Retraso
-  'replication:2': FailoverVisual,         // Multi-Líder
-  'replication:3': QuorumVisual,           // Sin Líder
-  'replication:4': SyncAsyncVisual,        // Escrituras Concurrentes
+  // Section-specific visuals (all concept_id = replication)
+  'replication:0': LeaderFollowerVisual,
+  'replication:1': ReplicationLagVisual,
+  'replication:2': FailoverVisual,
+  'replication:3': QuorumVisual,
+  'replication:4': SyncAsyncVisual,
 
   // Concept-level fallback
   'replication': LeaderFollowerVisual,

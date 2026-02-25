@@ -13,6 +13,7 @@ import { createLogger } from '@/lib/logger';
 import { GEMINI_VOICE_MODEL, GEMINI_VOICE_NAME, VOICE_COMPRESS_THRESHOLD, VOICE_FALLBACK_RECENT_TURNS } from '@/lib/constants';
 import type { Language } from '@/lib/translations';
 import type { Tool, FunctionCall, FunctionResponse } from '@google/genai';
+import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
 
 const log = createLogger('VoiceSession');
 
@@ -156,11 +157,12 @@ export function useVoiceSession({
 
   /** Fetch an ephemeral voice token (requires the built system instruction) */
   const fetchVoiceToken = useCallback(async (instruction: string): Promise<string> => {
-    const res = await fetch('/api/voice/token', {
+    const res = await fetchWithKeys('/api/voice/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ systemInstruction: instruction }),
     });
+    if (res.status === 429) throw new Error('Monthly token limit exceeded');
     if (!res.ok) throw new Error('Failed to get voice token');
     const { token } = await res.json();
     return token;
@@ -421,7 +423,7 @@ export function useVoiceSession({
       .map((t) => `${t.role === 'user' ? 'Student' : 'Tutor'}: ${t.text}`)
       .join('\n');
     try {
-      const res = await fetch('/api/voice/session/compress', {
+      const res = await fetchWithKeys('/api/voice/session/compress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversation, sectionTitle: title }),

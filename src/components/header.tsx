@@ -5,6 +5,7 @@ import { LanguageSelector } from '@/components/language-selector';
 import { MobileNav } from '@/components/mobile-nav';
 import { ScrollHeader } from '@/components/scroll-header';
 import { t, type Language } from '@/lib/translations';
+import { IS_MANAGED } from '@/lib/config';
 
 interface HeaderProps {
   currentPage?: 'home' | 'library' | 'review' | 'mi-sistema' | 'journal';
@@ -58,6 +59,14 @@ export async function Header({ currentPage }: HeaderProps) {
 
             {user ? (
               <>
+                {IS_MANAGED && (
+                  <Link
+                    href="/settings"
+                    className="font-mono text-[11px] tracking-[0.15em] uppercase text-j-text-secondary hover:text-j-text transition-colors"
+                  >
+                    Settings
+                  </Link>
+                )}
                 <LanguageSelector currentLanguage={lang} />
                 <LogoutButton label={t('nav.logout', lang)} />
               </>

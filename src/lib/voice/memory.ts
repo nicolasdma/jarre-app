@@ -25,6 +25,7 @@ export async function generateConversationSummary(
   transcripts: TranscriptTurn[],
   sectionTitle: string,
   userId?: string,
+  apiKey?: string,
 ): Promise<string | null> {
   if (transcripts.length === 0) return null;
 
@@ -34,6 +35,7 @@ export async function generateConversationSummary(
 
   try {
     const { content, tokensUsed } = await callDeepSeek({
+      apiKey,
       messages: [
         {
           role: 'system',

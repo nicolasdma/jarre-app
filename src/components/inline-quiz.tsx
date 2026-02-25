@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { createLogger } from '@/lib/logger';
+import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
 
 const log = createLogger('InlineQuiz');
 
@@ -164,6 +165,7 @@ export function InlineQuiz({ quiz, overrideState, onAnswer }: InlineQuizProps) {
   const [isCorrect, setIsCorrect] = useState<boolean>(false);
   const [justification, setJustification] = useState('');
   const [llmResult, setLlmResult] = useState<LlmResult | null>(null);
+  const [llmUnavailable, setLlmUnavailable] = useState(false);
 
   // Restore state
   useEffect(() => {
@@ -263,7 +265,7 @@ export function InlineQuiz({ quiz, overrideState, onAnswer }: InlineQuizProps) {
     setState('evaluating');
 
     try {
-      const response = await fetch('/api/quiz/evaluate-justification', {
+      const response = await fetchWithKeys('/api/quiz/evaluate-justification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -277,6 +279,10 @@ export function InlineQuiz({ quiz, overrideState, onAnswer }: InlineQuizProps) {
         }),
       });
 
+      if (response.status === 429) {
+        setLlmUnavailable(true);
+        throw new Error('Token limit exceeded');
+      }
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
@@ -693,6 +699,13 @@ export function InlineQuiz({ quiz, overrideState, onAnswer }: InlineQuizProps) {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* MC2: Budget exceeded notice */}
+            {isMc2 && state === 'answered' && llmUnavailable && !llmResult && (
+              <p className="mt-2 font-mono text-[9px] tracking-[0.1em] text-j-text-tertiary">
+                Evaluacion AI no disponible (limite de tokens alcanzado)
+              </p>
             )}
 
             {/* MC2: Show reference explanation after LLM result */}

@@ -10,18 +10,29 @@
  * Response: { token: string }
  */
 
+import { NextResponse } from 'next/server';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { withAuth } from '@/lib/api/middleware';
 import { badRequest, jsonOk } from '@/lib/api/errors';
 import { createLogger } from '@/lib/logger';
 import { GEMINI_VOICE_MODEL, GEMINI_VOICE_NAME } from '@/lib/constants';
+import { checkTokenBudget } from '@/lib/api/rate-limit';
 
 const log = createLogger('VoiceToken');
 
 const MAX_SYSTEM_INSTRUCTION_BYTES = 50_000;
 
-export const POST = withAuth(async (request) => {
-  const apiKey = process.env.GEMINI_API_KEY;
+export const POST = withAuth(async (request, { supabase, user, byokKeys }) => {
+  // Check token budget before issuing voice token
+  const budget = await checkTokenBudget(supabase, user.id, !!byokKeys.deepseek);
+  if (!budget.allowed) {
+    return NextResponse.json(
+      { error: 'Monthly token limit exceeded', used: budget.used, limit: budget.limit },
+      { status: 429 },
+    );
+  }
+
+  const apiKey = byokKeys.gemini || process.env.GEMINI_API_KEY;
   if (!apiKey) {
     log.error('GEMINI_API_KEY not configured');
     throw new Error('Voice service not configured');

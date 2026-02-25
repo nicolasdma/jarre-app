@@ -7,6 +7,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/middleware';
 import { badRequest } from '@/lib/api/errors';
 import { jsonOk } from '@/lib/api/errors';
@@ -14,8 +15,9 @@ import { startPipeline } from '@/lib/pipeline/orchestrator';
 import { extractYouTubeVideoId } from '@/lib/pipeline/stages/resolve-youtube';
 import { getUserLanguage } from '@/lib/db/queries/user';
 import { TABLES } from '@/lib/db/tables';
+import { checkTokenBudget } from '@/lib/api/rate-limit';
 
-export const POST = withAuth(async (request, { supabase, user }) => {
+export const POST = withAuth(async (request, { supabase, user, byokKeys }) => {
   const body = await request.json();
   const { url, title } = body as { url?: string; title?: string };
 
@@ -44,6 +46,14 @@ export const POST = withAuth(async (request, { supabase, user }) => {
   // Get user's preferred language
   const language = await getUserLanguage(supabase, user.id);
 
+  const budget = await checkTokenBudget(supabase, user.id, !!byokKeys.deepseek);
+  if (!budget.allowed) {
+    return NextResponse.json(
+      { error: 'Monthly token limit exceeded', used: budget.used, limit: budget.limit },
+      { status: 429 },
+    );
+  }
+
   const jobId = randomUUID();
   await startPipeline({
     jobId,
@@ -51,6 +61,7 @@ export const POST = withAuth(async (request, { supabase, user }) => {
     url,
     title,
     targetLanguage: language,
+    deepseekApiKey: byokKeys.deepseek,
   });
 
   return jsonOk({ jobId, status: 'queued' });

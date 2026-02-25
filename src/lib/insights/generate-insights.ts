@@ -231,6 +231,7 @@ const DebateTopicSchema = z.object({
 export async function generateDebateTopicInsights(
   supabase: SupabaseClient,
   userId: string,
+  apiKey?: string,
 ): Promise<InsightSuggestion[]> {
   // Find concepts at mastery >= 2
   const { data: advancedProgress } = await supabase
@@ -255,6 +256,7 @@ export async function generateDebateTopicInsights(
 
   try {
     const { content, tokensUsed } = await callDeepSeek({
+      apiKey,
       messages: [
         {
           role: 'system',

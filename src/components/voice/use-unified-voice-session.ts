@@ -28,6 +28,7 @@ import { handleToolCall, type ToolAction, type ToolDispatch } from '@/lib/voice/
 import { createLogger } from '@/lib/logger';
 import type { Language } from '@/lib/translations';
 import type { FunctionCall } from '@google/genai';
+import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
 
 const log = createLogger('UnifiedVoice');
 
@@ -273,11 +274,14 @@ export function useUnifiedVoiceSession(params: UseUnifiedVoiceSessionParams): Un
   const scoreEvalSession = useCallback(async (voiceSessionId: string) => {
     setState('scoring');
     try {
-      const res = await fetch('/api/evaluate/voice-score', {
+      const res = await fetchWithKeys('/api/evaluate/voice-score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ voiceSessionId }),
       });
+      if (res.status === 429) {
+        throw new Error('Monthly token limit exceeded');
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to score evaluation');
@@ -305,11 +309,14 @@ export function useUnifiedVoiceSession(params: UseUnifiedVoiceSessionParams): Un
   const scorePracticeSession = useCallback(async (voiceSessionId: string) => {
     setState('scoring');
     try {
-      const res = await fetch('/api/evaluate/voice-practice-score', {
+      const res = await fetchWithKeys('/api/evaluate/voice-practice-score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ voiceSessionId }),
       });
+      if (res.status === 429) {
+        throw new Error('Monthly token limit exceeded');
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to score practice');
@@ -336,11 +343,14 @@ export function useUnifiedVoiceSession(params: UseUnifiedVoiceSessionParams): Un
   const scoreTeachSession = useCallback(async (voiceSessionId: string) => {
     setState('scoring');
     try {
-      const res = await fetch('/api/evaluate/voice-teach-score', {
+      const res = await fetchWithKeys('/api/evaluate/voice-teach-score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ voiceSessionId, conceptId: conceptForTeach?.id }),
       });
+      if (res.status === 429) {
+        throw new Error('Monthly token limit exceeded');
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to score teaching');
@@ -368,11 +378,14 @@ export function useUnifiedVoiceSession(params: UseUnifiedVoiceSessionParams): Un
   const generateExplorationSummary = useCallback(async (sessionId: string) => {
     setState('summarizing');
     try {
-      const res = await fetch('/api/resources/exploration-summary', {
+      const res = await fetchWithKeys('/api/resources/exploration-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, userResourceId }),
       });
+      if (res.status === 429) {
+        throw new Error('Monthly token limit exceeded');
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to generate summary');
