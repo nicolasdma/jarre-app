@@ -8,8 +8,6 @@
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)
 
-<!-- SCREENSHOT: Replace with a screenshot of the dashboard showing a generated course.
-     Recommended size: 1200x720. Use a clean browser window, no bookmarks bar. -->
 ![Jarre Dashboard](docs/screenshots/hero.png)
 
 </div>

@@ -1,7 +1,6 @@
 {
   "name": "jarre-app",
   "version": "0.1.0",
-  "private": true,
   "description": "Turn any YouTube video into a structured learning experience with AI-generated content, evaluations, voice tutoring, and spaced repetition.",
   "author": "Jarre Contributors",
   "license": "AGPL-3.0-only",

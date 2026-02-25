@@ -5,7 +5,7 @@
 | Route | Purpose |
 |-------|---------|
 | `/dashboard` | Main hub: stats, quick actions, review pending |
-| `/library` | Browse all resources by phase (public-accessible) |
+| `/resources/[id]` | Resource detail: sections, evaluations, progress |
 | `/study/[resourceId]` | Full-screen PDF/resource viewer with canvas notes |
 | `/learn/[resourceId]` | Guided learning flow: activate → read sections → practice → evaluate |
 | `/evaluate/[resourceId]` | Standalone text evaluation (5 AI-generated questions) |
