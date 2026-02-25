@@ -3,30 +3,6 @@
 import { useState } from 'react';
 import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
 
-function BillingButton({
-  children,
-  onClick,
-  loading,
-  variant = 'primary',
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-  loading: boolean;
-  variant?: 'primary' | 'secondary';
-}) {
-  const base = 'px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50';
-  const styles =
-    variant === 'primary'
-      ? `${base} bg-blue-600 text-white hover:bg-blue-700`
-      : `${base} border border-border hover:bg-muted`;
-
-  return (
-    <button className={styles} onClick={onClick} disabled={loading}>
-      {loading ? 'Redirecting…' : children}
-    </button>
-  );
-}
-
 export function UpgradeButton() {
   const [loading, setLoading] = useState(false);
 
@@ -49,9 +25,13 @@ export function UpgradeButton() {
   }
 
   return (
-    <BillingButton onClick={handleUpgrade} loading={loading}>
-      Upgrade to Pro — $5/month
-    </BillingButton>
+    <button
+      className="font-mono text-[10px] tracking-[0.15em] uppercase transition-colors rounded bg-j-accent text-j-text-on-accent hover:bg-j-accent-hover disabled:opacity-50 j-glow-accent hover:shadow-[0_0_20px_rgba(94,170,94,0.15)] px-5 sm:px-6 py-3 min-h-[44px]"
+      onClick={handleUpgrade}
+      disabled={loading}
+    >
+      {loading ? 'Redirecting…' : 'Upgrade to Pro — $5/month'}
+    </button>
   );
 }
 
@@ -77,8 +57,12 @@ export function ManageSubscriptionButton() {
   }
 
   return (
-    <BillingButton onClick={handleManage} loading={loading} variant="secondary">
-      Manage subscription
-    </BillingButton>
+    <button
+      className="font-mono text-[10px] tracking-[0.15em] uppercase transition-colors rounded border border-j-border-input bg-transparent text-j-text-secondary hover:border-j-accent hover:text-j-text disabled:opacity-50 px-4 py-2.5 sm:py-2 min-h-[44px]"
+      onClick={handleManage}
+      disabled={loading}
+    >
+      {loading ? 'Redirecting…' : 'Manage subscription'}
+    </button>
   );
 }

@@ -61,10 +61,10 @@ export async function Header({ currentPage }: HeaderProps) {
               <>
                 {IS_MANAGED && (
                   <Link
-                    href="/settings"
+                    href="/profile"
                     className="font-mono text-[11px] tracking-[0.15em] uppercase text-j-text-secondary hover:text-j-text transition-colors"
                   >
-                    Settings
+                    Profile
                   </Link>
                 )}
                 <LanguageSelector currentLanguage={lang} />
@@ -93,6 +93,7 @@ export async function Header({ currentPage }: HeaderProps) {
             <MobileNav
               links={[
                 { href: '/dashboard', label: `01. ${t('nav.library', lang)}`, active: currentPage === 'library' },
+                ...(IS_MANAGED ? [{ href: '/profile', label: 'Profile', active: false }] : []),
               ]}
               isAuthenticated
               logoutLabel={t('nav.logout', lang)}
