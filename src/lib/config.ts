@@ -12,3 +12,8 @@ export const APP_MODE: AppMode =
 
 export const IS_MANAGED = APP_MODE === 'managed';
 export const IS_SELF_HOSTED = APP_MODE === 'self-hosted';
+
+export type BillingProvider = 'stripe' | 'lemonsqueezy';
+
+export const BILLING_PROVIDER: BillingProvider =
+  (process.env.BILLING_PROVIDER as BillingProvider) || 'lemonsqueezy';

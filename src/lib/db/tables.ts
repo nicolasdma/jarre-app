@@ -55,4 +55,7 @@ export const TABLES = {
 
   // Stripe idempotency
   processedStripeEvents: 'processed_stripe_events',
+
+  // LemonSqueezy idempotency
+  processedLemonsqueezyEvents: 'processed_lemonsqueezy_events',
 } as const;
