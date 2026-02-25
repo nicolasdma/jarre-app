@@ -5,10 +5,12 @@ import { createClient } from '@supabase/supabase-js';
 
 // Use service-role client — webhooks are not authenticated via Supabase auth
 function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SECRET_KEY!,
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY;
+  if (!url || !key) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY for Stripe webhook');
+  }
+  return createClient(url, key);
 }
 
 async function updateSubscriptionStatus(

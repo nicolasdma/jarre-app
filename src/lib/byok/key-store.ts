@@ -68,7 +68,11 @@ export async function storeKeys(keys: ByokKeys, userId: string): Promise<void> {
     data: arrayToBase64(new Uint8Array(ciphertext)),
   };
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // localStorage unavailable or full — keys remain in memory only
+  }
   cachedKeys = keys;
 }
 
@@ -101,7 +105,13 @@ async function tryDecrypt(raw: string, material: string): Promise<ByokKeys | nul
  * Falls back to sessionToken for migration from older encryption, then re-encrypts with userId.
  */
 export async function loadKeys(userId: string, sessionToken?: string): Promise<ByokKeys | null> {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  let raw: string | null;
+  try {
+    raw = localStorage.getItem(STORAGE_KEY);
+  } catch {
+    // localStorage unavailable (incognito, storage disabled, SSR)
+    return null;
+  }
   if (!raw) return null;
 
   // Try decrypting with userId (new scheme)
@@ -136,7 +146,11 @@ export function getStoredKeys(): ByokKeys {
  * Clear stored keys from localStorage and memory cache.
  */
 export function clearKeys(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // localStorage unavailable
+  }
   cachedKeys = null;
 }
 
