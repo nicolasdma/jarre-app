@@ -5,6 +5,7 @@ import { Header } from '@/components/header';
 import { SectionLabel } from '@/components/ui/section-label';
 import { PlanBanner } from '@/components/billing/plan-banner';
 import { IS_MANAGED } from '@/lib/config';
+import { FREE_VOICE_MINUTES } from '@/lib/constants';
 import type { Language } from '@/lib/translations';
 import { DashboardContent } from './dashboard-content';
 import type { PipelineCourseData } from './pipeline-course-card';
@@ -58,6 +59,23 @@ export default async function DashboardPage() {
     monthlyUsed = (tokenRows || []).reduce((sum, r) => sum + (r.tokens || 0), 0);
   }
   const monthlyLimit = subscriptionStatus === 'active' ? 500_000 : 50_000;
+
+  // Voice minutes used this month
+  let voiceMinutesUsed = 0;
+  const voiceMinutesLimit = subscriptionStatus === 'active' ? Infinity : FREE_VOICE_MINUTES;
+  if (user && IS_MANAGED && subscriptionStatus !== 'active') {
+    const now2 = new Date();
+    const mStart = new Date(Date.UTC(now2.getUTCFullYear(), now2.getUTCMonth(), 1));
+    const mEnd = new Date(Date.UTC(now2.getUTCFullYear(), now2.getUTCMonth() + 1, 1));
+    const { data: voiceRows } = await supabase
+      .from(TABLES.voiceSessions)
+      .select('duration_seconds')
+      .eq('user_id', user.id)
+      .gte('created_at', mStart.toISOString())
+      .lt('created_at', mEnd.toISOString());
+    const totalSeconds = (voiceRows || []).reduce((sum, r) => sum + (r.duration_seconds || 0), 0);
+    voiceMinutesUsed = Math.round(totalSeconds / 60 * 10) / 10;
+  }
 
   // Fetch pipeline-generated resources (video/lecture types)
   const { data: resources } = await supabase
@@ -190,11 +208,11 @@ export default async function DashboardPage() {
             {lang === 'es' ? 'Un video. Tu academia.' : 'Any video. Your classroom.'}
           </h1>
           <p className="text-xl sm:text-2xl font-light text-j-text-tertiary">
-            {lang === 'es' ? 'Miles de horas de video. ¿Qué te quedó?' : "You've watched 1,000 videos. How much do you remember?"}
+            {lang === 'es' ? 'Miles de horas de video. ¿Qué aprendiste?' : "You've watched 1,000 videos. How much do you remember?"}
           </p>
           {IS_MANAGED && user && (
             <div className="mt-4">
-              <PlanBanner status={subscriptionStatus} used={monthlyUsed} limit={monthlyLimit} />
+              <PlanBanner status={subscriptionStatus} used={monthlyUsed} limit={monthlyLimit} voiceMinutesUsed={voiceMinutesUsed} voiceMinutesLimit={voiceMinutesLimit} />
             </div>
           )}
         </div>

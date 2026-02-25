@@ -190,7 +190,7 @@ export function VoicePracticeFlow({
     concepts: concepts.map((c) => ({ id: c.id, name: c.name, definition: c.canonical_definition })),
   });
 
-  const { state, tutorState, error, elapsed, result, transcript, stream, playbackAnalyser } = session;
+  const { state, tutorState, error, elapsed, result, transcript, stream, playbackAnalyser, remainingSeconds, timeLimitWarning } = session;
   const practiceResult = result?.mode === 'practice' ? result.practiceResult : null;
   const audioLevel = useAudioLevel(stream);
   const frequencyBands = useTutorFrequency(playbackAnalyser);
@@ -415,11 +415,13 @@ export function VoicePracticeFlow({
         language={language}
         tutorState={tutorState}
         elapsed={elapsed}
-        maxDurationSeconds={420}
+        maxDurationSeconds={remainingSeconds !== Infinity ? remainingSeconds : 420}
         transcript={transcript}
         audioLevel={audioLevel}
         frequencyBands={frequencyBands}
         error={error}
+        timeLimitWarning={timeLimitWarning}
+        remainingSeconds={remainingSeconds}
         statusLabels={{
           listening: t('yourTurn', language),
           thinking: t('thinking', language),

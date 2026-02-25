@@ -178,6 +178,15 @@ export const DEFINITION_TRUNCATION_CHARS = 80;
 // VOICE (Gemini Live)
 // ============================================================================
 
+/** Free tier voice limit shown to user (minutes) */
+export const FREE_VOICE_MINUTES = 10;
+
+/** Actual hard cutoff for free tier (seconds) — 2 extra minutes as grace */
+export const FREE_VOICE_HARD_LIMIT_SECONDS = 720; // 12 min
+
+/** Warning fires this many seconds before the *displayed* limit (FREE_VOICE_MINUTES) */
+export const VOICE_TIME_WARNING_SECONDS = 120; // 2 min before the "10 min" mark
+
 /** Gemini model for voice sessions */
 export const GEMINI_VOICE_MODEL = 'gemini-2.5-flash-native-audio-preview-12-2025';
 

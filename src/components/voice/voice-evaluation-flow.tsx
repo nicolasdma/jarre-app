@@ -261,7 +261,7 @@ export function VoiceEvaluationFlow({
     concepts: concepts.map((c) => ({ id: c.id, name: c.name, definition: c.canonical_definition })),
   });
 
-  const { state, tutorState, error, elapsed, result, transcript, stream, playbackAnalyser } = session;
+  const { state, tutorState, error, elapsed, result, transcript, stream, playbackAnalyser, remainingSeconds, timeLimitWarning } = session;
   const evaluationResult = result?.mode === 'eval' ? result.evaluationResult : null;
   const audioLevel = useAudioLevel(stream);
   const frequencyBands = useTutorFrequency(playbackAnalyser);
@@ -386,11 +386,13 @@ export function VoiceEvaluationFlow({
         language={language}
         tutorState={tutorState}
         elapsed={elapsed}
-        maxDurationSeconds={600}
+        maxDurationSeconds={remainingSeconds !== Infinity ? remainingSeconds : 600}
         transcript={transcript}
         audioLevel={audioLevel}
         frequencyBands={frequencyBands}
         error={error}
+        timeLimitWarning={timeLimitWarning}
+        remainingSeconds={remainingSeconds}
         statusLabels={{
           listening: t('yourTurn', language),
           thinking: t('thinking', language),

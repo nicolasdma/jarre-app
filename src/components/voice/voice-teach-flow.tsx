@@ -86,7 +86,7 @@ export function VoiceTeachFlow({
     conceptForTeach: { id: conceptId, name: conceptName, definition: conceptDefinition },
   });
 
-  const { state, tutorState, error, elapsed, result, transcript, stream, playbackAnalyser } = session;
+  const { state, tutorState, error, elapsed, result, transcript, stream, playbackAnalyser, remainingSeconds, timeLimitWarning } = session;
   const teachResult = result?.mode === 'teach' ? result.teachResult : null;
   const audioLevel = useAudioLevel(stream);
   const frequencyBands = useTutorFrequency(playbackAnalyser);
@@ -167,11 +167,13 @@ export function VoiceTeachFlow({
         language={language}
         tutorState={tutorState}
         elapsed={elapsed}
-        maxDurationSeconds={480}
+        maxDurationSeconds={remainingSeconds !== Infinity ? remainingSeconds : 480}
         transcript={transcript}
         audioLevel={audioLevel}
         frequencyBands={frequencyBands}
         error={error}
+        timeLimitWarning={timeLimitWarning}
+        remainingSeconds={remainingSeconds}
         statusLabels={{
           listening: t('yourTurn', language),
           thinking: t('juniorThinking', language),

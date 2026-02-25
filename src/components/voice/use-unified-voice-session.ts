@@ -175,6 +175,10 @@ export interface UnifiedVoiceSession {
   stream: MediaStream | null;
   /** AnalyserNode for tutor playback audio frequency data */
   playbackAnalyser: AnalyserNode | null;
+  /** Remaining voice seconds for this month (Infinity for unlimited) */
+  remainingSeconds: number;
+  /** True when user is approaching the displayed voice time limit */
+  timeLimitWarning: boolean;
 
   start: () => Promise<void>;
   stop: () => void;
@@ -735,6 +739,8 @@ export function useUnifiedVoiceSession(params: UseUnifiedVoiceSessionParams): Un
     transcript: voiceSession.transcript,
     stream: voiceSession.stream,
     playbackAnalyser: voiceSession.playbackAnalyser,
+    remainingSeconds: voiceSession.remainingSeconds,
+    timeLimitWarning: voiceSession.timeLimitWarning,
     start,
     stop,
     retryPostProcess,

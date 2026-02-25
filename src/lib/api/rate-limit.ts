@@ -13,6 +13,7 @@
 import { IS_SELF_HOSTED } from '@/lib/config';
 import { TABLES } from '@/lib/db/tables';
 import { createLogger } from '@/lib/logger';
+import { FREE_VOICE_HARD_LIMIT_SECONDS } from '@/lib/constants';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 const log = createLogger('RateLimit');
@@ -25,6 +26,13 @@ export interface BudgetCheck {
   used: number;
   limit: number;
   remaining: number;
+}
+
+export interface VoiceTimeBudget {
+  allowed: boolean;
+  usedSeconds: number;
+  limitSeconds: number;
+  remainingSeconds: number;
 }
 
 /**
@@ -83,4 +91,60 @@ export async function checkTokenBudget(
   }
 
   return { allowed, used, limit, remaining };
+}
+
+/**
+ * Check if a user has remaining voice time budget for the current month.
+ *
+ * Returns unlimited for self-hosted, BYOK, and Pro users.
+ * Free tier gets FREE_VOICE_HARD_LIMIT_SECONDS per month (actual hard limit).
+ */
+export async function checkVoiceTimeBudget(
+  supabase: SupabaseClient,
+  userId: string,
+  hasByokKeys: boolean,
+): Promise<VoiceTimeBudget> {
+  // Self-hosted, BYOK, and paid users have no voice time limits
+  if (IS_SELF_HOSTED || hasByokKeys) {
+    return { allowed: true, usedSeconds: 0, limitSeconds: Infinity, remainingSeconds: Infinity };
+  }
+
+  // Check subscription status
+  const { data: profile } = await supabase
+    .from(TABLES.userProfiles)
+    .select('subscription_status')
+    .eq('id', userId)
+    .single();
+
+  if (profile?.subscription_status === 'active') {
+    return { allowed: true, usedSeconds: 0, limitSeconds: Infinity, remainingSeconds: Infinity };
+  }
+
+  // Free tier — sum duration_seconds from voice_sessions this month
+  const now = new Date();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+  const { data, error } = await supabase
+    .from(TABLES.voiceSessions)
+    .select('duration_seconds')
+    .eq('user_id', userId)
+    .gte('created_at', monthStart.toISOString())
+    .lt('created_at', monthEnd.toISOString());
+
+  if (error) {
+    log.error('Failed to check voice time budget:', error.message);
+    return { allowed: false, usedSeconds: 0, limitSeconds: 0, remainingSeconds: 0 };
+  }
+
+  const usedSeconds = (data || []).reduce((sum, row) => sum + (row.duration_seconds || 0), 0);
+  const limitSeconds = FREE_VOICE_HARD_LIMIT_SECONDS;
+  const remainingSeconds = Math.max(0, limitSeconds - usedSeconds);
+  const allowed = usedSeconds < limitSeconds * 1.1; // 10% tolerance
+
+  if (!allowed) {
+    log.info(`User ${userId} exceeded voice time budget: ${usedSeconds}/${limitSeconds}s`);
+  }
+
+  return { allowed, usedSeconds, limitSeconds, remainingSeconds };
 }

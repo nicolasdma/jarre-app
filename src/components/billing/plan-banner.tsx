@@ -8,9 +8,11 @@ interface PlanBannerProps {
   status: string;
   used: number;
   limit: number;
+  voiceMinutesUsed?: number;
+  voiceMinutesLimit?: number;
 }
 
-export function PlanBanner({ status, used, limit }: PlanBannerProps) {
+export function PlanBanner({ status, used, limit, voiceMinutesUsed, voiceMinutesLimit }: PlanBannerProps) {
   const [showPricing, setShowPricing] = useState(false);
   const { hasKeys, loading: byokLoading } = useByok();
   const isActive = status === 'active';
@@ -44,6 +46,14 @@ export function PlanBanner({ status, used, limit }: PlanBannerProps) {
       <span className={exceeded ? 'text-red-400' : ''}>
         {formatK(used)}/{formatK(limit)} tokens
       </span>
+      {!isActive && voiceMinutesLimit != null && voiceMinutesLimit !== Infinity && (
+        <>
+          <span className="text-j-border">·</span>
+          <span className={voiceMinutesUsed != null && voiceMinutesUsed >= voiceMinutesLimit ? 'text-red-400' : ''}>
+            {voiceMinutesUsed ?? 0}/{voiceMinutesLimit} min voz
+          </span>
+        </>
+      )}
       {!isActive && (
         <>
           <span className="text-j-border">·</span>

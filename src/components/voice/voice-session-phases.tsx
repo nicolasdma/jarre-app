@@ -88,9 +88,14 @@ interface ActivePhaseProps {
   maxWidth?: string;
   /** 8 frequency bands (0-1) from tutor playback audio */
   frequencyBands?: Float32Array;
+  /** Show time limit warning badge */
+  timeLimitWarning?: boolean;
+  /** Remaining seconds for this session (for warning display) */
+  remainingSeconds?: number;
 }
 
 export function VoiceActivePhase({
+  language,
   tutorState,
   elapsed,
   maxDurationSeconds,
@@ -103,6 +108,8 @@ export function VoiceActivePhase({
   className = 'py-8',
   maxWidth = 'max-w-md',
   frequencyBands,
+  timeLimitWarning,
+  remainingSeconds,
 }: ActivePhaseProps) {
   const [transcriptExpanded, setTranscriptExpanded] = useState(false);
 
@@ -145,6 +152,17 @@ export function VoiceActivePhase({
           {formatTime(elapsed)}
         </span>
       </div>
+
+      {/* Time limit warning */}
+      {timeLimitWarning && remainingSeconds != null && remainingSeconds !== Infinity && (
+        <div className="mb-4 px-3 py-1.5 rounded-full bg-j-warm/10 border border-j-warm/20">
+          <span className="font-mono text-[10px] text-j-warm">
+            {language === 'es'
+              ? `${formatTime(Math.max(0, remainingSeconds - elapsed))} restantes`
+              : `${formatTime(Math.max(0, remainingSeconds - elapsed))} remaining`}
+          </span>
+        </div>
+      )}
 
       {/* Progress bar */}
       <div className="w-48 h-1 bg-j-border rounded-full mb-6 overflow-hidden">

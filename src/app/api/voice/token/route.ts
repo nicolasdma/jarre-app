@@ -16,7 +16,7 @@ import { withAuth } from '@/lib/api/middleware';
 import { badRequest, jsonOk } from '@/lib/api/errors';
 import { createLogger } from '@/lib/logger';
 import { GEMINI_VOICE_MODEL, GEMINI_VOICE_NAME } from '@/lib/constants';
-import { checkTokenBudget } from '@/lib/api/rate-limit';
+import { checkTokenBudget, checkVoiceTimeBudget } from '@/lib/api/rate-limit';
 
 const log = createLogger('VoiceToken');
 
@@ -28,6 +28,15 @@ export const POST = withAuth(async (request, { supabase, user, byokKeys }) => {
   if (!budget.allowed) {
     return NextResponse.json(
       { error: 'Monthly token limit exceeded', used: budget.used, limit: budget.limit },
+      { status: 429 },
+    );
+  }
+
+  // Check voice time budget (free tier only)
+  const voiceBudget = await checkVoiceTimeBudget(supabase, user.id, !!byokKeys.gemini);
+  if (!voiceBudget.allowed) {
+    return NextResponse.json(
+      { error: 'Monthly voice time limit exceeded', remainingSeconds: 0 },
       { status: 429 },
     );
   }
@@ -77,5 +86,8 @@ export const POST = withAuth(async (request, { supabase, user, byokKeys }) => {
 
   log.info('Ephemeral voice token issued');
 
-  return jsonOk({ token: authToken.name });
+  return jsonOk({
+    token: authToken.name,
+    remainingSeconds: voiceBudget.remainingSeconds,
+  });
 });

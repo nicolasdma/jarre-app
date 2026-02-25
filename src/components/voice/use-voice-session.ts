@@ -10,7 +10,7 @@ import {
 import { buildVoiceSystemInstruction } from '@/lib/llm/voice-prompts';
 import { formatMemoryForPrompt, type LearnerConceptMemory } from '@/lib/learner-memory';
 import { createLogger } from '@/lib/logger';
-import { GEMINI_VOICE_MODEL, GEMINI_VOICE_NAME, VOICE_COMPRESS_THRESHOLD, VOICE_FALLBACK_RECENT_TURNS } from '@/lib/constants';
+import { GEMINI_VOICE_MODEL, GEMINI_VOICE_NAME, VOICE_COMPRESS_THRESHOLD, VOICE_FALLBACK_RECENT_TURNS, FREE_VOICE_MINUTES, VOICE_TIME_WARNING_SECONDS } from '@/lib/constants';
 import type { Language } from '@/lib/translations';
 import type { Tool, FunctionCall, FunctionResponse } from '@google/genai';
 import { fetchWithKeys } from '@/lib/api/fetch-with-keys';
@@ -67,6 +67,10 @@ interface VoiceSession {
   sendToolResponse: (responses: FunctionResponse[]) => void;
   /** AnalyserNode for tutor playback audio frequency data */
   playbackAnalyser: AnalyserNode | null;
+  /** Remaining voice seconds for this month (Infinity for unlimited) */
+  remainingSeconds: number;
+  /** True when user is approaching the displayed voice time limit */
+  timeLimitWarning: boolean;
 }
 
 // ============================================================================
@@ -102,8 +106,11 @@ export function useVoiceSession({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState<number>(Infinity);
+  const [timeLimitWarning, setTimeLimitWarning] = useState(false);
 
   const clientRef = useRef<GeminiLiveClientInstance | null>(null);
+  const remainingSecondsRef = useRef<number>(Infinity);
   const audioContextRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const workletNodeRef = useRef<AudioWorkletNode | null>(null);
@@ -162,10 +169,19 @@ export function useVoiceSession({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ systemInstruction: instruction }),
     });
-    if (res.status === 429) throw new Error('Monthly token limit exceeded');
+    if (res.status === 429) {
+      const data = await res.json().catch(() => ({}));
+      if (data.remainingSeconds === 0) throw new Error('Monthly voice time limit exceeded');
+      throw new Error('Monthly token limit exceeded');
+    }
     if (!res.ok) throw new Error('Failed to get voice token');
-    const { token } = await res.json();
-    return token;
+    const data = await res.json();
+    // Store remaining voice seconds for time limit enforcement
+    if (typeof data.remainingSeconds === 'number' && data.remainingSeconds !== Infinity) {
+      remainingSecondsRef.current = data.remainingSeconds;
+      setRemainingSeconds(data.remainingSeconds);
+    }
+    return data.token;
   }, []);
 
   const prefetchContext = useCallback(async () => {
@@ -359,7 +375,27 @@ export function useVoiceSession({
   const startTimer = useCallback(() => {
     startTimeRef.current = Date.now();
     timerRef.current = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
+      const elapsedS = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setElapsed(elapsedS);
+
+      const remaining = remainingSecondsRef.current;
+      if (remaining === Infinity) return; // Unlimited user
+
+      // Warning: fires when elapsed reaches (displayed limit - warning buffer)
+      // e.g., remaining=720, displayed=600, warning at 600-120=480s elapsed
+      const displayedLimit = FREE_VOICE_MINUTES * 60;
+      const warningThreshold = Math.min(displayedLimit, remaining) - VOICE_TIME_WARNING_SECONDS;
+      if (elapsedS >= warningThreshold && elapsedS < remaining) {
+        setTimeLimitWarning(true);
+      }
+
+      // Hard cutoff: auto-disconnect at the actual remaining seconds
+      if (elapsedS >= remaining) {
+        log.info(`[TimeLimit] Hard cutoff reached at ${elapsedS}s (limit: ${remaining}s)`);
+        setTimeLimitWarning(false);
+        disconnectRef.current();
+        onSessionCompleteRef.current?.();
+      }
     }, 1000);
   }, []);
 
@@ -494,6 +530,9 @@ export function useVoiceSession({
     setTranscript([]);
     lastLoggedStateRef.current = 'idle';
     sessionEndDetectedRef.current = false;
+    setTimeLimitWarning(false);
+    remainingSecondsRef.current = Infinity;
+    setRemainingSeconds(Infinity);
     if (endKeywordTimerRef.current) {
       clearTimeout(endKeywordTimerRef.current);
       endKeywordTimerRef.current = null;
@@ -854,5 +893,7 @@ export function useVoiceSession({
     stream,
     sendToolResponse,
     playbackAnalyser: playbackAnalyserRef.current,
+    remainingSeconds,
+    timeLimitWarning,
   };
 }
