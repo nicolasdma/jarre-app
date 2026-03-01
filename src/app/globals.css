@@ -76,6 +76,7 @@
   --color-j-highlight: var(--j-highlight);
   --color-j-highlight-hover: var(--j-highlight-hover);
   --color-j-highlight-active: var(--j-highlight-active);
+  --color-j-surface: var(--j-surface);
 }
 
 :root {
@@ -86,6 +87,7 @@
   --j-bg-alt: #f5f4f0;
   --j-bg-hover: #f8f7f4;
   --j-bg-white: #ffffff;
+  --j-surface: #ffffff;
 
   --j-text: #1E293B;
   --j-text-secondary: #64748B;
@@ -250,5 +252,14 @@ mark.jarre-highlight-active {
   select,
   summary {
     cursor: pointer;
+  }
+}
+
+@keyframes translating-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
   }
 }

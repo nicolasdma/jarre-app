@@ -319,13 +319,25 @@ export const ConceptSection = memo(function ConceptSection({
   return (
     <div className="border-l-2 border-j-accent pl-6 py-6">
       {/* Section header */}
-      <div className="flex items-center gap-3 mb-6">
-        <span className="font-mono text-[10px] tracking-[0.15em] text-j-accent uppercase font-medium">
-          {String(section.sortOrder + 1).padStart(2, '0')}
-        </span>
-        <span className="text-sm font-medium text-j-text">
-          {displayTitle}
-        </span>
+      <div className="mb-6">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[10px] tracking-[0.15em] text-j-accent uppercase font-medium">
+            {String(section.sortOrder + 1).padStart(2, '0')}
+          </span>
+          <span className="text-sm font-medium text-j-text">
+            {displayTitle}
+          </span>
+          {isPending && (
+            <span className="font-mono text-[9px] tracking-[0.15em] text-j-text-tertiary uppercase">
+              {language === 'es' ? 'traduciendo…' : 'translating…'}
+            </span>
+          )}
+        </div>
+        {isPending && (
+          <div className="mt-2 h-[2px] w-full bg-j-border overflow-hidden rounded-full">
+            <div className="h-full w-1/3 bg-j-warm rounded-full animate-[translating-bar_1.5s_ease-in-out_infinite]" />
+          </div>
+        )}
       </div>
 
       {/* Phase: Pre-question (productive failure) */}
@@ -403,14 +415,6 @@ export const ConceptSection = memo(function ConceptSection({
                 {t('learn.preQuestion.attempted', language)}
               </span>
               <span className="ml-2">— lee la sección y compara con tu respuesta.</span>
-            </div>
-          )}
-
-          {isPending && (
-            <div className="bg-j-bg-alt border border-j-border px-3 py-2 mb-4 flex items-center gap-2">
-              <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-j-text-tertiary animate-pulse">
-                {language === 'es' ? 'Contenido original — traduciendo…' : 'Original content — translating…'}
-              </span>
             </div>
           )}
 
