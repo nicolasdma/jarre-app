@@ -86,6 +86,7 @@ const STEP_LABELS: Record<Step, { key: Parameters<typeof t>[0] }> = {
 
 interface ConceptSectionWrapperProps {
   section: Section;
+  resourceId: string;
   index: number;
   language: Language;
   activeSection: number;
@@ -100,6 +101,7 @@ interface ConceptSectionWrapperProps {
 
 const ConceptSectionWrapper = memo(function ConceptSectionWrapper({
   section,
+  resourceId,
   index,
   language,
   activeSection,
@@ -121,6 +123,7 @@ const ConceptSectionWrapper = memo(function ConceptSectionWrapper({
   return (
     <ConceptSection
       section={section}
+      resourceId={resourceId}
       language={language}
       isActive={index === activeSection}
       onComplete={handleComplete}
@@ -571,6 +574,7 @@ export function LearnFlow({
                 <ConceptSectionWrapper
                   key={section.id}
                   section={section}
+                  resourceId={resourceId}
                   index={i}
                   language={language}
                   activeSection={activeSection}

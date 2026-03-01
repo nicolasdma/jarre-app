@@ -143,7 +143,7 @@ export const TOKEN_BUDGETS = {
   // Pipeline stages
   PIPELINE_SEGMENT: 2000,
   PIPELINE_CONTENT: 8192,
-  PIPELINE_TRANSLATE: 8000,
+  PIPELINE_TRANSLATE: 8192,
   PIPELINE_QUIZZES: 2000,
   PIPELINE_ACTIVATE: 1500,
   PIPELINE_LANGUAGE_DETECT: 100,
@@ -160,6 +160,9 @@ export const PIPELINE_TOTAL_STAGES = 6;
 
 /** Max concurrent LLM calls for section content generation */
 export const PIPELINE_MAX_CONCURRENT = 5;
+
+/** Max concurrent LLM calls for on-demand translations (lower to avoid rate limits) */
+export const TRANSLATION_MAX_CONCURRENT = 3;
 
 /** Polling interval for pipeline status (ms) */
 export const PIPELINE_POLL_INTERVAL_MS = 3000;

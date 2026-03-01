@@ -25,6 +25,7 @@ interface Section {
 
 interface ConceptSectionProps {
   section: Section;
+  resourceId?: string;
   language: Language;
   isActive: boolean;
   onComplete: () => void;
@@ -52,6 +53,7 @@ interface QuestionData {
 
 export const ConceptSection = memo(function ConceptSection({
   section,
+  resourceId,
   language,
   isActive,
   onComplete,
@@ -63,6 +65,8 @@ export const ConceptSection = memo(function ConceptSection({
   exercises,
 }: ConceptSectionProps) {
   const hasExercises = exercises && exercises.length > 0;
+  const [translatedContent, setTranslatedContent] = useState<{ title: string; markdown: string } | null>(null);
+  const [isPending, setIsPending] = useState(section.pendingTranslation ?? false);
   const [phase, setPhase] = useState<Phase>(initialState?.phase ?? 'pre-question');
   const [preQuestion, setPreQuestion] = useState<QuestionData | null>(null);
   const [preAnswer, setPreAnswer] = useState(initialState?.preAnswer ?? '');
@@ -92,6 +96,49 @@ export const ConceptSection = memo(function ConceptSection({
   const [voiceCompleted, setVoiceCompleted] = useState(initialState?.voiceCompleted ?? false);
 
   const { cancel: cancelWhisper } = useWhisper();
+
+  // Poll for translation completion when pending (max ~2 min)
+  useEffect(() => {
+    if (!isPending || !resourceId) return;
+
+    let attempts = 0;
+    const MAX_ATTEMPTS = 24;
+
+    const interval = setInterval(async () => {
+      attempts++;
+      if (attempts > MAX_ATTEMPTS) {
+        setIsPending(false);
+        clearInterval(interval);
+        return;
+      }
+      try {
+        const params = new URLSearchParams({
+          resourceId,
+          language,
+          sectionIds: section.id,
+        });
+        const res = await fetch(`/api/translations/status?${params}`);
+        if (!res.ok) return;
+        const { ready } = await res.json();
+        if (ready[section.id]) {
+          setTranslatedContent({
+            title: ready[section.id].sectionTitle,
+            markdown: ready[section.id].contentMarkdown,
+          });
+          setIsPending(false);
+          clearInterval(interval);
+        }
+      } catch {
+        // Silently retry on next interval
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isPending, resourceId, language, section.id]);
+
+  // Derive display values
+  const displayTitle = translatedContent?.title ?? section.sectionTitle;
+  const displayMarkdown = translatedContent?.markdown ?? section.contentMarkdown;
 
   // Restore completed sections on mount: if saved as 'completed', notify parent
   const restoredRef = useRef(false);
@@ -240,7 +287,7 @@ export const ConceptSection = memo(function ConceptSection({
           <span className="font-mono text-[10px] tracking-[0.15em] text-j-text-tertiary uppercase">
             {String(section.sortOrder + 1).padStart(2, '0')}
           </span>
-          <span className="text-sm text-j-text-secondary">{section.sectionTitle}</span>
+          <span className="text-sm text-j-text-secondary">{displayTitle}</span>
         </div>
       </button>
     );
@@ -255,7 +302,7 @@ export const ConceptSection = memo(function ConceptSection({
       >
         <div className="flex items-center gap-3">
           <span className="font-mono text-[10px] tracking-[0.15em] text-j-accent uppercase">
-            ✓ {section.sectionTitle}
+            ✓ {displayTitle}
           </span>
           {postResult && (
             <span
@@ -277,7 +324,7 @@ export const ConceptSection = memo(function ConceptSection({
           {String(section.sortOrder + 1).padStart(2, '0')}
         </span>
         <span className="text-sm font-medium text-j-text">
-          {section.sectionTitle}
+          {displayTitle}
         </span>
       </div>
 
@@ -359,7 +406,7 @@ export const ConceptSection = memo(function ConceptSection({
             </div>
           )}
 
-          {section.pendingTranslation && (
+          {isPending && (
             <div className="bg-j-bg-alt border border-j-border px-3 py-2 mb-4 flex items-center gap-2">
               <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-j-text-tertiary animate-pulse">
                 {language === 'es' ? 'Contenido original — traduciendo…' : 'Original content — translating…'}
@@ -369,7 +416,7 @@ export const ConceptSection = memo(function ConceptSection({
 
           <AnnotatedContent
             sectionId={section.id}
-            markdown={section.contentMarkdown}
+            markdown={displayMarkdown}
             conceptId={section.conceptId}
             sectionIndex={section.sortOrder}
             inlineQuizzes={inlineQuizzes}
@@ -381,8 +428,8 @@ export const ConceptSection = memo(function ConceptSection({
               {!voiceCompleted ? (
                 <VoicePanel
                   sectionId={section.id}
-                  sectionContent={section.contentMarkdown}
-                  sectionTitle={section.sectionTitle}
+                  sectionContent={displayMarkdown}
+                  sectionTitle={displayTitle}
                   language={language}
                   onSessionComplete={() => {
                     setVoiceCompleted(true);

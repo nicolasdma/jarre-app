@@ -10,7 +10,7 @@ import { createLogger } from '@/lib/logger';
 import { createAdminClient } from '@/lib/supabase/server';
 import { callDeepSeek } from '@/lib/llm/deepseek';
 import { TABLES } from '@/lib/db/tables';
-import { TOKEN_BUDGETS, PIPELINE_MAX_CONCURRENT } from '@/lib/constants';
+import { TOKEN_BUDGETS, TRANSLATION_MAX_CONCURRENT } from '@/lib/constants';
 import { logTokenUsage } from '@/lib/db/token-usage';
 import type { ActivateData } from '@/lib/pipeline/types';
 
@@ -41,14 +41,19 @@ function md5Hash(text: string): string {
 async function runWithConcurrency<T>(
   tasks: (() => Promise<T>)[],
   maxConcurrent: number,
-): Promise<T[]> {
-  const results: T[] = new Array(tasks.length);
+): Promise<(T | null)[]> {
+  const results: (T | null)[] = new Array(tasks.length).fill(null);
   let nextIndex = 0;
 
   async function worker(): Promise<void> {
     while (nextIndex < tasks.length) {
       const index = nextIndex++;
-      results[index] = await tasks[index]();
+      try {
+        results[index] = await tasks[index]();
+      } catch (err) {
+        log.error(`Task ${index}/${tasks.length} failed: ${err}`);
+        // Continue with next task — don't kill the worker
+      }
     }
   }
 
@@ -59,6 +64,38 @@ async function runWithConcurrency<T>(
   await Promise.all(workers);
   return results;
 }
+
+/** Split markdown by bold headings into chunks under maxChars */
+function splitByHeadings(markdown: string, maxChars: number): string[] {
+  if (markdown.length <= maxChars) return [markdown];
+
+  const lines = markdown.split('\n');
+  const chunks: string[] = [];
+  let current: string[] = [];
+  let currentLen = 0;
+
+  for (const line of lines) {
+    const isHeading = /^\*\*[^*]+\*\*\s*$/.test(line.trim());
+    const lineLen = line.length + 1; // +1 for newline
+
+    if (isHeading && currentLen > 0 && currentLen + lineLen > maxChars) {
+      chunks.push(current.join('\n'));
+      current = [line];
+      currentLen = lineLen;
+    } else {
+      current.push(line);
+      currentLen += lineLen;
+    }
+  }
+
+  if (current.length > 0) {
+    chunks.push(current.join('\n'));
+  }
+
+  return chunks;
+}
+
+const CHUNK_THRESHOLD = 8_000;
 
 async function translateMarkdown(
   markdown: string,
@@ -94,11 +131,37 @@ IMPORTANT: Return ONLY the translated markdown. No JSON wrapping, no preamble, n
     temperature: 0.2,
     maxTokens: TOKEN_BUDGETS.PIPELINE_TRANSLATE,
     responseFormat: 'text',
-    timeoutMs: 90_000,
+    timeoutMs: 120_000,
     retryOnTimeout: true,
   });
 
   return { translated: content.trim(), tokensUsed };
+}
+
+/** Translate markdown, chunking large content to avoid token/timeout limits */
+async function translateMarkdownChunked(
+  markdown: string,
+  fromLang: string,
+  toLang: string,
+  context: string,
+  apiKey?: string,
+): Promise<{ translated: string; tokensUsed: number }> {
+  const chunks = splitByHeadings(markdown, CHUNK_THRESHOLD);
+  if (chunks.length === 1) {
+    return translateMarkdown(markdown, fromLang, toLang, context, apiKey);
+  }
+
+  log.info(`Chunked translation: ${chunks.length} chunks (${markdown.length} chars)`);
+  let totalTokens = 0;
+  const translatedChunks: string[] = [];
+
+  for (const chunk of chunks) {
+    const { translated, tokensUsed } = await translateMarkdown(chunk, fromLang, toLang, context, apiKey);
+    translatedChunks.push(translated);
+    totalTokens += tokensUsed;
+  }
+
+  return { translated: translatedChunks.join('\n\n'), tokensUsed: totalTokens };
 }
 
 async function translatePlainText(
@@ -134,7 +197,7 @@ IMPORTANT: Return ONLY the translated text. No JSON wrapping, no preamble, no ex
     temperature: 0.2,
     maxTokens: TOKEN_BUDGETS.PIPELINE_TRANSLATE,
     responseFormat: 'text',
-    timeoutMs: 90_000,
+    timeoutMs: 120_000,
     retryOnTimeout: true,
   });
 
@@ -217,7 +280,8 @@ export async function getTranslatedSections(
 
     const bgSections = sections.filter((s) => pendingSectionIds.has(s.id));
     const tasks = bgSections.map((section) => async () => {
-      const { translated: translatedMarkdown, tokensUsed } = await translateMarkdown(
+      log.info(`Translating section ${section.id} (${section.content_markdown.length} chars)`);
+      const { translated: translatedMarkdown, tokensUsed } = await translateMarkdownChunked(
         section.content_markdown,
         resourceLanguage,
         targetLanguage,
@@ -257,7 +321,7 @@ export async function getTranslatedSections(
     });
 
     // Do NOT await — let it run in the background
-    runWithConcurrency(tasks, PIPELINE_MAX_CONCURRENT)
+    runWithConcurrency(tasks, TRANSLATION_MAX_CONCURRENT)
       .then(() => log.info(`Background section translation complete for ${resourceId}`))
       .catch((err) => log.error(`Background section translation failed: ${err}`));
   }
@@ -526,7 +590,7 @@ export async function getTranslatedQuizzes(
     });
 
     // Do NOT await — let it run in the background
-    runWithConcurrency(tasks, PIPELINE_MAX_CONCURRENT)
+    runWithConcurrency(tasks, TRANSLATION_MAX_CONCURRENT)
       .then(() => log.info(`Background quiz translation complete`))
       .catch((err) => log.error(`Background quiz translation failed: ${err}`));
   }
