@@ -100,13 +100,10 @@ export default async function DashboardPage() {
     }
   }
 
-  // Keep only resources with at least 1 section, shuffle, take max 9
+  // Keep only resources with at least 1 section, sort by newest first
   const withSections = allResources.filter((r) => (sectionCounts[r.id] || 0) > 0);
-  for (let i = withSections.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [withSections[i], withSections[j]] = [withSections[j], withSections[i]];
-  }
-  const pipelineResources = withSections.slice(0, 6);
+  withSections.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const pipelineResources = withSections;
   const resourceIds = pipelineResources.map((r) => r.id);
 
   // Fetch evaluation stats per resource (personal — requires auth)

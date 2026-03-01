@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PricingModal } from '@/components/billing/pricing-modal';
 import type { Language } from '@/lib/translations';
 import { PipelineCourseCard, type PipelineCourseData } from './pipeline-course-card';
@@ -65,9 +66,23 @@ interface DashboardContentProps {
   stats: DashboardStats;
 }
 
+const containerVariants = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.04 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' as const } },
+  exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
+};
+
 export function DashboardContent({ courses, language }: DashboardContentProps) {
   const router = useRouter();
   const [url, setUrl] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Pipeline state
   const [status, setStatus] = useState<PipelineStatus>('idle');
@@ -84,6 +99,12 @@ export function DashboardContent({ courses, language }: DashboardContentProps) {
   const isProcessing = status === 'submitting' || status === 'polling';
   const labels = STAGE_LABELS[language] || STAGE_LABELS.es;
   const progressPercent = totalStages > 0 ? Math.round((stagesCompleted / totalStages) * 100) : 0;
+
+  const filteredCourses = useMemo(() => {
+    if (!searchQuery.trim()) return courses;
+    const q = searchQuery.toLowerCase();
+    return courses.filter((c) => c.title.toLowerCase().includes(q));
+  }, [courses, searchQuery]);
 
   const handleSubmit = async () => {
     const trimmed = url.trim();
@@ -367,20 +388,55 @@ export function DashboardContent({ courses, language }: DashboardContentProps) {
 
       </div>
 
-      {/* Section header */}
+      {/* Section header + search */}
       {courses.length > 0 && (
-        <h2 className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase mb-6">
-          {language === 'es' ? 'Cursos' : 'Courses'}
-          <span className="ml-2 text-j-text-secondary">({courses.length})</span>
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+          <h2 className="font-mono text-[10px] tracking-[0.2em] text-j-text-tertiary uppercase shrink-0">
+            {language === 'es' ? 'Cursos' : 'Courses'}
+            <span className="ml-2 text-j-text-secondary">({filteredCourses.length})</span>
+          </h2>
+          {/* Search bar disabled for now
+          <div className="relative flex-1 max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-j-text-tertiary" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={language === 'es' ? 'Buscar por título...' : 'Search by title...'}
+              className="w-full pl-8 pr-3 py-1.5 bg-transparent border border-j-border/60 rounded-lg text-xs text-j-text placeholder:text-j-text-tertiary focus:border-j-accent/60 focus:outline-none transition-colors"
+            />
+          </div>
+          */}
+        </div>
       )}
 
       {/* Course grid */}
-      {courses.length > 0 && (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => (
-            <PipelineCourseCard key={course.id} course={course} language={language} />
-          ))}
+      {courses.length > 0 && filteredCourses.length > 0 && (
+        <motion.div
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          key={searchQuery}
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredCourses.map((course) => (
+              <motion.div key={course.id} variants={itemVariants} layout exit="exit">
+                <PipelineCourseCard course={course} language={language} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
+      {/* No search results */}
+      {courses.length > 0 && filteredCourses.length === 0 && searchQuery && (
+        <div className="py-12 text-center">
+          <p className="text-sm text-j-text-tertiary">
+            {language === 'es'
+              ? `No se encontraron cursos para "${searchQuery}"`
+              : `No courses found for "${searchQuery}"`}
+          </p>
         </div>
       )}
 
